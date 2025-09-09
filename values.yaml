@@ -1,0 +1,67 @@
+local_development: false
+namespaces:
+  keycloak: keycloak
+  controller: fn-controller
+  tasks: tasks
+db:
+  user: admin
+  name: fndb
+  hostname: ""
+  port: 5432
+  secret:
+    name: ""
+    key: ""
+cleanupTime: 0
+outboundMode: true
+taskReview: false
+smoketests: false
+storage:
+  capacity: 1Gi
+  aks:
+    secretName: ""
+    storageAccountName: ""
+    storageAccountKey: ""
+    shareName: ""
+host: ""
+keycloak:
+  replicas: 2
+on_aks: true
+on_eks: false
+fn-task-controller:
+  idp:
+    github:
+      secret_name: ""
+      secret_key: ""
+      clientid_key: ""
+  storage:
+    capacity: 1Gi
+    aks:
+      secretName: ""
+      storageAccountName: ""
+      storageAccountKey: ""
+      shareName: ""
+  delivery:
+    other:
+      url: test
+      auth_type: Bearer
+nginx-ingress:
+  enabled: false
+  namespaceOverride: ingress-nginx
+  controller:
+    allowSnippetAnnotations: false
+    ingressClass: fn-nginx
+    ingressClassResource:
+      name: fn-nginx
+    extraArgs:
+      default-ssl-certificate: default/tls
+cert-manager:
+  enabled: false
+  namespace: fn-certmanager
+  installCRDs: true
+global:
+  namespaces:
+    keycloak: keycloak
+    controller: fn-controller
+    tasks: tasks
+  taskReview: false
+  host: ""
