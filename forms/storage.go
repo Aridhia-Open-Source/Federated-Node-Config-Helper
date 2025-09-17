@@ -1,6 +1,11 @@
 package forms
 
-import "github.com/rivo/tview"
+import (
+	"fn-installer/helpers"
+	"strings"
+
+	"github.com/rivo/tview"
+)
 
 var storageChoices = []string{"azure", "aws", "local"}
 
@@ -13,9 +18,18 @@ var awsAccessPoint = tview.NewInputField().SetLabel("AWS Access Point ID")
 var localPath = tview.NewInputField().SetLabel("Local Path")
 var localDbPath = tview.NewInputField().SetLabel("Local DB Path")
 
+func getChoiceFromState() int {
+	for i, st := range storageChoices {
+		if st == strings.ToLower(helpers.State.CloudPlatform) {
+			return i
+		}
+	}
+	return 0
+}
+
 var StorageSettingsForm = tview.NewForm().
 	AddInputField("Capacity", "1Gi", 20, nil, nil).
-	AddDropDown("Storage type", storageChoices, 0, hideFields).
+	AddDropDown("Storage type", storageChoices, getChoiceFromState(), hideFields).
 	AddFormItem(aksSecretName).
 	AddFormItem(aksStorageAccountKey).
 	AddFormItem(awsStorageAccountName).

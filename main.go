@@ -11,51 +11,11 @@ import (
 
 	"fn-installer/forms"
 	"fn-installer/helpers"
+	"fn-installer/pages"
 )
-
-var deployNamespace string
 
 func main() {
 	app := tview.NewApplication()
-	pages := tview.NewPages()
-
-	// Pages
-	pages.AddPage("General", forms.GeneralSettingsForm, true, true)
-	pages.AddPage("Storage", forms.StorageSettingsForm, true, false)
-	pages.AddPage("Outbound", forms.OutboundSettingsForm, true, false)
-	pages.AddPage("Nginx", forms.NginxSettingsForm, true, false)
-	pages.AddPage("CertManager", forms.CertSettingsForm, true, false)
-	pages.AddPage("Namespaces", forms.NamespacesForm, true, false)
-	pages.SetBorder(true).SetTitle("Federated Node configuration helper")
-
-	// Side Menu
-	sideMenu := tview.NewList().ShowSecondaryText(false)
-
-	sideMenu.AddItem("General", "", '1', func() {
-		pages.SwitchToPage("General")
-		app.SetFocus(forms.GeneralSettingsForm)
-	})
-	sideMenu.AddItem("Storage", "", '2', func() {
-		pages.SwitchToPage("Storage")
-		app.SetFocus(forms.StorageSettingsForm)
-	})
-	sideMenu.AddItem("Outbound mode", "", '3', func() {
-		pages.SwitchToPage("Outbound")
-		app.SetFocus(forms.OutboundSettingsForm)
-	})
-	sideMenu.AddItem("Certificate Manager", "", '4', func() {
-		pages.SwitchToPage("CertManager")
-		app.SetFocus(forms.CertSettingsForm)
-	})
-	sideMenu.AddItem("Nginx", "", '5', func() {
-		pages.SwitchToPage("Nginx")
-		app.SetFocus(forms.NginxSettingsForm)
-	})
-	sideMenu.AddItem("Namespaces", "", '6', func() {
-		pages.SwitchToPage("Namespaces")
-		app.SetFocus(forms.NamespacesForm)
-	})
-	sideMenu.SetBorder(true).SetTitle("Categories")
 
 	// Main Buttons
 	saveButton := tview.NewButton("Save")
@@ -67,19 +27,25 @@ func main() {
 
 	footer := tview.NewTextView()
 	footer.SetBorder(true)
-	footer.SetText("Deploy command:\n\nhelm install federatednode -n federatednode -f values.yaml")
-	forms.GeneralSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).SetChangedFunc(func(text string) {
+	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", helpers.State.Namespace))
+	pages.NamespaceDeployment.SetChangedFunc(func(text string) {
+		if text == "" {
+			text = "default"
+		}
+		helpers.State.Namespace = text
 		footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", text))
 	})
+
+	page, mainSideMenu := pages.CreateMainPage(app)
 
 	// Main app handlers
 	flex := tview.NewFlex().
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(sideMenu, 0, 8, true).
+			AddItem(mainSideMenu, 0, 8, true).
 			AddItem(saveButton, 0, 1, false).
 			AddItem(quitButton, 0, 1, false), 0, 1, true).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(pages, 0, 8, false).
+			AddItem(page, 0, 8, false).
 			AddItem(footer, 0, 2, false), 0, 1, false)
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
@@ -91,7 +57,6 @@ func getValuesAndSaveYaml() {
 	conf := helpers.Config{}
 	var err error = nil
 
-	deployNamespace = forms.GeneralSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).GetText()
 	conf.LocalDevelopment = forms.GeneralSettingsForm.GetFormItemByLabel("Is development deployment").(*tview.Checkbox).IsChecked()
 	conf.TaskReview = forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox).IsChecked()
 	conf.Global.TaskReview = forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox).IsChecked()
@@ -176,5 +141,4 @@ func getValuesAndSaveYaml() {
 	conf.Namespaces = namespaces
 
 	helpers.CreateYaml(&conf)
-
 }

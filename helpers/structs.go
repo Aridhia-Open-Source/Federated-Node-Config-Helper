@@ -1,5 +1,11 @@
 package helpers
 
+import (
+	"fmt"
+
+	"github.com/emicklei/go-restful/v3/log"
+)
+
 type DBSecret struct {
 	Name string
 	Key  string
@@ -121,4 +127,8 @@ type Config struct {
 	NginxIngress     NginxConfig      `yaml:"nginx-ingress"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
 	Global           GlobalConfig
+}
+
+func (c Config) Print() {
+	log.Print(fmt.Sprintf("%s\nOutbound mode: %t", c.Global.Host, c.OutboundMode))
 }

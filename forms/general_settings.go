@@ -3,7 +3,6 @@ package forms
 import "github.com/rivo/tview"
 
 var GeneralSettingsForm = tview.NewForm().
-	AddInputField("Namespace", "federatednode", 20, nil, nil).
 	AddCheckbox("Is development deployment", false, nil).
 	AddCheckbox("Use Task Result Review", false, nil).
 	AddCheckbox("Enable Smoketests", false, nil).
