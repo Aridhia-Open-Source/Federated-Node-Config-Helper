@@ -28,7 +28,6 @@ func init() {
 	}
 	if flag.Lookup("kubeconfig") == nil {
 		kubeconfigPath = flag.String("kubeconfig", kubeconfig, "absolute path to the kubeconfig file")
-		flag.Parse()
 	}
 }
 
@@ -59,7 +58,11 @@ func GetClient() *kubernetes.Clientset {
 	return clientset
 }
 
-func CreateSecret(name string, data map[string]string) {
+func CreateSecret(name string, data map[string]string, labels ...map[string]string) {
+	var label map[string]string
+	if len(labels) > 0 {
+		label = labels[0]
+	}
 	secret := v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
@@ -68,6 +71,7 @@ func CreateSecret(name string, data map[string]string) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: state.State.Namespace,
+			Labels:    label,
 		},
 		StringData: data,
 	}
