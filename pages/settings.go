@@ -1,9 +1,11 @@
 package pages
 
 import (
+	"fn-installer/components"
 	"fn-installer/forms"
-	"fn-installer/helpers"
+	"fn-installer/state"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -31,7 +33,7 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	})
 	mainSideMenu.AddItem("Outbound mode", "", '4', func() {
 		page.SwitchToPage("Outbound")
-		app.SetFocus(forms.OutboundSettingsForm)
+		app.SetFocus(forms.GHContainer)
 	})
 	mainSideMenu.AddItem("Certificate Manager", "", '5', func() {
 		page.SwitchToPage("CertManager")
@@ -49,22 +51,25 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 
 	cloudPlatformDropDown := tview.NewDropDown()
 	cloudPlatformDropDown.SetLabel("Choose the cloud provider (if any)")
-	cloudPlatformDropDown.AddOption("None (local)", func() { helpers.State.CloudPlatform = "Local" })
-	cloudPlatformDropDown.AddOption("AWS", func() { helpers.State.CloudPlatform = "AWS" })
-	cloudPlatformDropDown.AddOption("Azure", func() { helpers.State.CloudPlatform = "Azure" })
+	cloudPlatformDropDown.AddOption("None (local)", func() { state.State.CloudPlatform = "Local" })
+	cloudPlatformDropDown.AddOption("AWS", func() { state.State.CloudPlatform = "AWS" })
+	cloudPlatformDropDown.AddOption("Azure", func() { state.State.CloudPlatform = "Azure" })
 	cloudPlatformDropDown.SetSelectedFunc(forms.HideFields)
+	cloudPlatformDropDown.SetCurrentOption(0)
+	components.ErrorBoard.SetTextColor(tcell.ColorRed).SetBorder(true).SetBorderColor(tcell.ColorRed)
 
 	NamespaceDeployment.SetLabel("Deployment Namespace")
+	NamespaceDeployment.SetText("default")
 
 	introView := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(NamespaceDeployment, 0, 1, true).
+		AddItem(NamespaceDeployment, 0, 2, true).
 		AddItem(cloudPlatformDropDown, 0, 1, true)
 
 	page.AddPage("Select platform", introView, true, true)
 	page.AddPage("Secrets", forms.SecretContainer, true, false)
 	page.AddPage("General", forms.GeneralSettingsForm, true, false)
 	page.AddPage("Storage", forms.StorageSettingsForm, true, false)
-	page.AddPage("Outbound", forms.OutboundSettingsForm, true, false)
+	page.AddPage("Outbound", forms.GHContainer, true, false)
 	page.AddPage("Nginx", forms.NginxSettingsForm, true, false)
 	page.AddPage("CertManager", forms.CertSettingsForm, true, false)
 	page.AddPage("Namespaces", forms.NamespacesForm, true, false)

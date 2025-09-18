@@ -7,9 +7,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-var aksSecretName = tview.NewInputField().SetLabel("Azure Storage Secret Name")
-var aksStorageAccountKey = tview.NewInputField().SetLabel("Azure Storage Account Secret Key")
-var awsStorageAccountName = tview.NewInputField().SetLabel("Azure Storage Account Name")
 var aksShareName = tview.NewInputField().SetLabel("Azure File Share")
 var awsFileId = tview.NewInputField().SetLabel("AWS File System ID")
 var awsAccessPoint = tview.NewInputField().SetLabel("AWS Access Point ID")
@@ -18,10 +15,7 @@ var localDbPath = tview.NewInputField().SetLabel("Local DB Path")
 
 var StorageSettingsForm = tview.NewForm().
 	AddInputField("Capacity", "1Gi", 20, nil, nil).
-	AddFormItem(aksSecretName).
-	AddFormItem(aksStorageAccountKey).
 	AddFormItem(aksShareName).
-	AddFormItem(awsStorageAccountName).
 	AddFormItem(awsFileId).
 	AddFormItem(awsAccessPoint).
 	AddFormItem(localPath).
@@ -41,9 +35,7 @@ func HideFields(option string, optionIndex int) {
 			}
 		}
 		if StorageSettingsForm.GetFormItemCount() == 0 {
-			StorageSettingsForm.AddFormItem(aksSecretName).
-				AddFormItem(aksStorageAccountKey).
-				AddFormItem(aksShareName)
+			StorageSettingsForm.AddFormItem(aksShareName)
 		}
 	case "aws":
 		for i := 0; i < StorageSettingsForm.GetFormItemCount(); {
@@ -56,8 +48,7 @@ func HideFields(option string, optionIndex int) {
 			}
 		}
 		if StorageSettingsForm.GetFormItemCount() == 0 {
-			StorageSettingsForm.AddFormItem(awsStorageAccountName).
-				AddFormItem(awsFileId).
+			StorageSettingsForm.AddFormItem(awsFileId).
 				AddFormItem(awsAccessPoint)
 		}
 	default:

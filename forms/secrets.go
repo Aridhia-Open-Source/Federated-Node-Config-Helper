@@ -28,79 +28,60 @@ var awsSSLRoleName = tview.NewInputField().SetLabel("AWS SSL Role Name")
 
 var SecretsForm = tview.NewForm().
 	AddInputField("Database Secret Name", "", 20, nil, nil).
-	AddInputField("Database Username", "", 20, nil, nil).
-	AddPasswordField("Database Password", "", 20, rune(1), nil).
-	AddFormItem(azureSecretName).
-	AddFormItem(azureStorageAccountKey).
-	AddFormItem(azureStorageAccountName).
-	AddFormItem(azureSslSecretName).
-	AddFormItem(azureSslSPSecret).
-	AddFormItem(azureSslConfigMapName).
-	AddFormItem(azureSslEmail).
-	AddFormItem(azureSslHostedZone).
-	AddFormItem(azureSslRGName).
-	AddFormItem(azureSslSPId).
-	AddFormItem(azureSslSubscriptionId).
-	AddFormItem(azureSslTenantId).
-	AddFormItem(awsSSLSecretName).
-	AddFormItem(awsSSLEmail).
-	AddFormItem(awsSSLRegion).
-	AddFormItem(awsSSLAccountId).
-	AddFormItem(awsSSLRoleName)
+	AddPasswordField("Database Password", "", 20, rune('*'), nil)
 
 var createSecretButton = tview.NewButton("Create Secrets").SetSelectedFunc(func() {
-	secretName := SecretsForm.GetFormItemByLabel("Azure Secret Name").(*tview.InputField).GetText()
-	if secretName != "" {
+	dbSecretName := SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
+	if dbSecretName != "" {
 		helpers.CreateSecret(
-			SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText(),
+			dbSecretName,
 			map[string]string{
-				"username": SecretsForm.GetFormItemByLabel("Database Username").(*tview.InputField).GetText(),
 				"password": SecretsForm.GetFormItemByLabel("Database Password").(*tview.InputField).GetText(),
 			},
 		)
 	}
-	secretName = SecretsForm.GetFormItemByLabel("Azure Secret Name").(*tview.InputField).GetText()
+	secretName := azureSecretName.GetText()
 	if secretName != "" {
 		helpers.CreateSecret(
 			secretName,
 			map[string]string{
-				"azurestorageaccountkey":  SecretsForm.GetFormItemByLabel("Azure Storage Account Key").(*tview.InputField).GetText(),
-				"azurestorageaccountname": SecretsForm.GetFormItemByLabel("Azure Storage Account Name").(*tview.InputField).GetText(),
+				"azurestorageaccountkey":  azureStorageAccountKey.GetText(),
+				"azurestorageaccountname": azureStorageAccountName.GetText(),
 			},
 		)
 	}
-	secretName = SecretsForm.GetFormItemByLabel("Azure SSL Secret Name").(*tview.InputField).GetText()
+	secretName = azureSslSecretName.GetText()
 	if secretName != "" {
 		helpers.CreateSecret(
 			secretName,
 			map[string]string{
-				"SP_SECRET": SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
+				"SP_SECRET": azureSslSPSecret.GetText(),
 			},
 		)
 	}
-	cmName := SecretsForm.GetFormItemByLabel("Azure SSL Secret Name").(*tview.InputField).GetText()
+	cmName := azureSslConfigMapName.GetText()
 	if cmName != "" {
 		helpers.CreateConfigMap(
 			cmName,
 			map[string]string{
-				"EMAIL_CERT":      SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
-				"HOSTED_ZONE":     SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
-				"RG_NAME":         SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
-				"SP_ID":           SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
-				"SUBSCRIPTION_ID": SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
-				"TENANT_ID":       SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
+				"EMAIL_CERT":      azureSslEmail.GetText(),
+				"HOSTED_ZONE":     azureSslHostedZone.GetText(),
+				"RG_NAME":         azureSslRGName.GetText(),
+				"SP_ID":           azureSslSPId.GetText(),
+				"SUBSCRIPTION_ID": azureSslSubscriptionId.GetText(),
+				"TENANT_ID":       azureSslTenantId.GetText(),
 			},
 		)
 	}
-	secretName = SecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
+	secretName = awsSSLSecretName.GetText()
 	if secretName != "" {
 		helpers.CreateSecret(
 			secretName,
 			map[string]string{
-				"EMAIL_CERT": SecretsForm.GetFormItemByLabel("AWS SSL Email").(*tview.InputField).GetText(),
-				"REGION":     SecretsForm.GetFormItemByLabel("AWS SSL Region").(*tview.InputField).GetText(),
-				"ACCOUNT_ID": SecretsForm.GetFormItemByLabel("AWS SSL Account ID").(*tview.InputField).GetText(),
-				"ROLE_NAME":  SecretsForm.GetFormItemByLabel("AWS SSL Role Name").(*tview.InputField).GetText(),
+				"EMAIL_CERT": awsSSLEmail.GetText(),
+				"REGION":     awsSSLRegion.GetText(),
+				"ACCOUNT_ID": awsSSLAccountId.GetText(),
+				"ROLE_NAME":  awsSSLRoleName.GetText(),
 			},
 		)
 	}
@@ -154,7 +135,12 @@ func SecretsHide(option string) {
 		}
 	default:
 		for i := 0; i < SecretsForm.GetFormItemCount(); i++ {
-			SecretsForm.RemoveFormItem(i)
+			matched, _ := regexp.MatchString("^Database.*", SecretsForm.GetFormItem(i).GetLabel())
+			if !matched {
+				SecretsForm.RemoveFormItem(i)
+			} else {
+				i++
+			}
 		}
 	}
 }

@@ -3,7 +3,10 @@ package helpers
 import (
 	"context"
 	"flag"
+	"fn-installer/components"
+	"fn-installer/state"
 	"path/filepath"
+	"regexp"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,32 +17,29 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+var kubeconfig string
+var kubeconfigPath *string
+
+func init() {
+	if home := homedir.HomeDir(); home != "" {
+		kubeconfig = filepath.Join(home, ".kube", "config")
+		// kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = ""
+		// kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	if flag.Lookup("kubeconfig") == nil {
+		kubeconfigPath = flag.String("kubeconfig", kubeconfig, "absolute path to the kubeconfig file")
+		flag.Parse()
+	}
+}
+
 func GetClient() *kubernetes.Clientset {
 	var config *rest.Config
 	config, err := rest.InClusterConfig()
 
 	// If we are not in-cluster
-	if err != nil {
-		var kubeconfig *string
-		if home := homedir.HomeDir(); home != "" {
-			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		} else {
-			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		}
-		flag.Parse()
-
-		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			panic(err.Error())
-		}
-		// create the clientset
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			panic(err.Error())
-		}
-		return clientset
-	} else {
+	if err == nil {
 		// create the clientset
 		clientset, err := kubernetes.NewForConfig(config)
 		if err != nil {
@@ -47,6 +47,18 @@ func GetClient() *kubernetes.Clientset {
 		}
 		return clientset
 	}
+
+	// use the current context in kubeconfig
+	config, err = clientcmd.BuildConfigFromFlags("", *kubeconfigPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	// create the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	return clientset
 }
 
 func CreateSecret(name string, data map[string]string) {
@@ -57,32 +69,46 @@ func CreateSecret(name string, data map[string]string) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: "default",
+			Namespace: state.State.Namespace,
 		},
 		StringData: data,
 	}
 	var v1 = GetClient()
-	_, err := v1.CoreV1().Secrets("default").Create(context.TODO(), &secret, metav1.CreateOptions{})
+	_, err := v1.CoreV1().Secrets(state.State.Namespace).Create(context.TODO(), &secret, metav1.CreateOptions{})
 	if err != nil {
-		panic(err.Error())
+		msg := err.Error()
+		if matched, _ := regexp.MatchString("already exists", msg); matched {
+			components.ErrorBoard.SetText(msg)
+		} else {
+			panic(msg)
+		}
+	} else {
+		components.ErrorBoard.SetText("")
 	}
 }
 
 func CreateConfigMap(name string, data map[string]string) {
-	secret := v1.ConfigMap{
+	cm := v1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: "default",
+			Namespace: state.State.Namespace,
 		},
 		Data: data,
 	}
 	var v1 = GetClient()
-	_, err := v1.CoreV1().ConfigMaps("default").Create(context.TODO(), &secret, metav1.CreateOptions{})
+	_, err := v1.CoreV1().ConfigMaps(state.State.Namespace).Create(context.TODO(), &cm, metav1.CreateOptions{})
 	if err != nil {
-		panic(err.Error())
+		msg := err.Error()
+		if matched, _ := regexp.MatchString("already exists", msg); matched {
+			components.ErrorBoard.SetText(msg)
+		} else {
+			panic(msg)
+		}
+	} else {
+		components.ErrorBoard.SetText("")
 	}
 }

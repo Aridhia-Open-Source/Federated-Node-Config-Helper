@@ -100,7 +100,15 @@ type CertConfig struct {
 	Namespace  string
 	InstallCRD bool `yaml:"installCRDs"`
 }
-
+type AzureCerts struct {
+	SecretName string `yaml:"secretName"`
+	Configmap  string
+}
+type Certs struct {
+	RotationPolicy string `yaml:"rotationPolicy"`
+	Azure          *AzureCerts
+	AWS            string
+}
 type Keycloak struct {
 	Replicas int
 }
@@ -126,6 +134,7 @@ type Config struct {
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
 	NginxIngress     NginxConfig      `yaml:"nginx-ingress"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
+	Certs            Certs
 	Global           GlobalConfig
 }
 

@@ -6,12 +6,15 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/rivo/tview"
 
+	"fn-installer/components"
 	"fn-installer/forms"
 	"fn-installer/helpers"
 	"fn-installer/pages"
+	"fn-installer/state"
 )
 
 func main() {
@@ -26,14 +29,15 @@ func main() {
 	quitButton.SetSelectedFunc(func() { app.Stop() }).SetBorder(true)
 
 	footer := tview.NewTextView()
+
 	footer.SetBorder(true)
-	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", helpers.State.Namespace))
+	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", state.State.Namespace))
 	pages.NamespaceDeployment.SetChangedFunc(func(text string) {
 		if text == "" {
 			text = "default"
 		}
-		helpers.State.Namespace = text
-		footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", text))
+		state.State.Namespace = text
+		footer.SetText(fmt.Sprintf("Deploy command:\nhelm install federatednode -n %s -f values.yaml", text))
 	})
 
 	page, mainSideMenu := pages.CreateMainPage(app)
@@ -46,7 +50,8 @@ func main() {
 			AddItem(quitButton, 0, 1, false), 0, 1, true).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(page, 0, 8, false).
-			AddItem(footer, 0, 2, false), 0, 1, false)
+			AddItem(footer, 0, 1, false).
+			AddItem(components.ErrorBoard, 0, 1, false), 0, 1, false)
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
@@ -72,8 +77,8 @@ func getValuesAndSaveYaml() {
 	if err != nil {
 		panic(err)
 	}
-	conf.Database.Secret.Name = forms.GeneralSettingsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
-	conf.Database.Secret.Key = forms.GeneralSettingsForm.GetFormItemByLabel("Database Secret Key").(*tview.InputField).GetText()
+	conf.Database.Secret.Name = forms.SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
+	conf.Database.Secret.Key = "password"
 
 	conf.NginxIngress.Enabled = forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
 	conf.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
@@ -89,19 +94,22 @@ func getValuesAndSaveYaml() {
 	conf.CertManager.InstallCRD = forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
 
 	conf.OutboundMode = forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
-	deliveryIndex, _ := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
-	if deliveryIndex == 1 {
+	_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
+	if deliveryOption == "github" {
 		conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: "repo"}
 	} else {
 		conf.ControllerConfig.Delivery.Other = &helpers.DeliveryOther{Url: "test", AuthType: "Bearer"}
 	}
 
-	conf.ControllerConfig.Idp.Github.SecretName = forms.OutboundSettingsForm.GetFormItemByLabel("IDP Secret Name").(*tview.InputField).GetText()
-	conf.ControllerConfig.Idp.Github.SecretKey = forms.OutboundSettingsForm.GetFormItemByLabel("IDP Secret Key").(*tview.InputField).GetText()
-	conf.ControllerConfig.Idp.Github.ClientIDKey = forms.OutboundSettingsForm.GetFormItemByLabel("IDP Client ID Key").(*tview.InputField).GetText()
-	_, choice := forms.StorageSettingsForm.GetFormItemByLabel("Storage type").(*tview.DropDown).GetCurrentOption()
+	conf.ControllerConfig.Idp.Github.SecretName = forms.OutboundSettingsForm.GetFormItemByLabel("Github App Secret Name").(*tview.InputField).GetText()
+	conf.ControllerConfig.Idp.Github.SecretKey = "GH_SECRET"
+	conf.ControllerConfig.Idp.Github.ClientIDKey = "GH_CLIENT_ID"
 
-	switch choice {
+	conf.Certs.RotationPolicy = forms.CertSettingsForm.GetFormItemByLabel("Rotation Policy").(*tview.InputField).GetText()
+
+	choice := state.State.CloudPlatform
+
+	switch strings.ToLower(choice) {
 	case "aws":
 		conf.OnEks = true
 		awsStorage := &helpers.AwsStorage{
@@ -110,16 +118,19 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Aws = awsStorage
 		conf.ControllerConfig.Storage.Aws = awsStorage
+		conf.Certs.Azure.Configmap = forms.SecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
+		conf.Certs.Azure.SecretName = forms.SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
 	case "azure":
 		conf.OnAks = true
 		azureStorage := &helpers.AzureStorage{
 			SecretName:         forms.StorageSettingsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
 			ShareName:          forms.StorageSettingsForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText(),
-			StorageAccountKey:  forms.StorageSettingsForm.GetFormItemByLabel("Azure Storage Account Secret Key").(*tview.InputField).GetText(),
-			StorageAccountName: forms.StorageSettingsForm.GetFormItemByLabel("Azure Storage Account Name").(*tview.InputField).GetText(),
+			StorageAccountKey:  "azurestorageaccountkey",
+			StorageAccountName: "azurestorageaccountname",
 		}
 		conf.Storage.Azure = azureStorage
 		conf.ControllerConfig.Storage.Azure = azureStorage
+		conf.Certs.AWS = forms.SecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	default:
 		localStorage := &helpers.LocalStorage{
 			Path:   forms.StorageSettingsForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),
