@@ -32,13 +32,14 @@ func main() {
 
 	footer.SetBorder(true)
 	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", state.State.Namespace))
-	pages.NamespaceDeployment.SetChangedFunc(func(text string) {
-		if text == "" {
-			text = "default"
-		}
-		state.State.Namespace = text
-		footer.SetText(fmt.Sprintf("Deploy command:\nhelm install federatednode -n %s -f values.yaml", text))
-	})
+	forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).
+		SetChangedFunc(func(text string) {
+			if text == "" {
+				text = "default"
+			}
+			state.State.Namespace = text
+			footer.SetText(fmt.Sprintf("Deploy command:\nhelm install federatednode -n %s -f values.yaml", text))
+		})
 
 	page, mainSideMenu := pages.CreateMainPage(app)
 
@@ -118,8 +119,8 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Aws = awsStorage
 		conf.ControllerConfig.Storage.Aws = awsStorage
-		conf.Certs.Azure.Configmap = forms.SecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
-		conf.Certs.Azure.SecretName = forms.SecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
+		conf.Certs.Azure.Configmap = forms.AzureSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
+		conf.Certs.Azure.SecretName = forms.AzureSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
 	case "azure":
 		conf.OnAks = true
 		azureStorage := &helpers.AzureStorage{
@@ -130,7 +131,7 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Azure = azureStorage
 		conf.ControllerConfig.Storage.Azure = azureStorage
-		conf.Certs.AWS = forms.SecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
+		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	default:
 		localStorage := &helpers.LocalStorage{
 			Path:   forms.StorageSettingsForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),

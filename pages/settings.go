@@ -3,14 +3,12 @@ package pages
 import (
 	"fn-installer/components"
 	"fn-installer/forms"
-	"fn-installer/state"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 var page = tview.NewPages()
-var NamespaceDeployment = tview.NewInputField()
 
 func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	mainSideMenu := tview.NewList().ShowSecondaryText(false)
@@ -49,21 +47,10 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	})
 	mainSideMenu.SetBorder(true).SetTitle("Categories")
 
-	cloudPlatformDropDown := tview.NewDropDown()
-	cloudPlatformDropDown.SetLabel("Choose the cloud provider (if any)")
-	cloudPlatformDropDown.AddOption("None (local)", func() { state.State.CloudPlatform = "Local" })
-	cloudPlatformDropDown.AddOption("AWS", func() { state.State.CloudPlatform = "AWS" })
-	cloudPlatformDropDown.AddOption("Azure", func() { state.State.CloudPlatform = "Azure" })
-	cloudPlatformDropDown.SetSelectedFunc(forms.HideFields)
-	cloudPlatformDropDown.SetCurrentOption(0)
 	components.ErrorBoard.SetTextColor(tcell.ColorRed).SetBorder(true).SetBorderColor(tcell.ColorRed)
 
-	NamespaceDeployment.SetLabel("Deployment Namespace")
-	NamespaceDeployment.SetText("default")
-
 	introView := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(NamespaceDeployment, 0, 2, true).
-		AddItem(cloudPlatformDropDown, 0, 1, true)
+		AddItem(forms.IntroContainer, 0, 2, true)
 
 	page.AddPage("Select platform", introView, true, true)
 	page.AddPage("Secrets", forms.SecretContainer, true, false)

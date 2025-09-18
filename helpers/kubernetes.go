@@ -23,10 +23,8 @@ var kubeconfigPath *string
 func init() {
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = filepath.Join(home, ".kube", "config")
-		// kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		kubeconfig = ""
-		// kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 	if flag.Lookup("kubeconfig") == nil {
 		kubeconfigPath = flag.String("kubeconfig", kubeconfig, "absolute path to the kubeconfig file")
@@ -75,16 +73,7 @@ func CreateSecret(name string, data map[string]string) {
 	}
 	var v1 = GetClient()
 	_, err := v1.CoreV1().Secrets(state.State.Namespace).Create(context.TODO(), &secret, metav1.CreateOptions{})
-	if err != nil {
-		msg := err.Error()
-		if matched, _ := regexp.MatchString("already exists", msg); matched {
-			components.ErrorBoard.SetText(msg)
-		} else {
-			panic(msg)
-		}
-	} else {
-		components.ErrorBoard.SetText("")
-	}
+	checkErrors(err)
 }
 
 func CreateConfigMap(name string, data map[string]string) {
@@ -101,6 +90,26 @@ func CreateConfigMap(name string, data map[string]string) {
 	}
 	var v1 = GetClient()
 	_, err := v1.CoreV1().ConfigMaps(state.State.Namespace).Create(context.TODO(), &cm, metav1.CreateOptions{})
+	checkErrors(err)
+}
+
+func CreateNamespace(name string) {
+	ns := v1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Spec: v1.NamespaceSpec{},
+	}
+	var v1 = GetClient()
+	_, err := v1.CoreV1().Namespaces().Create(context.TODO(), &ns, metav1.CreateOptions{})
+	checkErrors(err)
+}
+
+func checkErrors(err error) {
 	if err != nil {
 		msg := err.Error()
 		if matched, _ := regexp.MatchString("already exists", msg); matched {
