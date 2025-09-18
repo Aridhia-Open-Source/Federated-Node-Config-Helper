@@ -97,9 +97,13 @@ func getValuesAndSaveYaml() {
 	conf.OutboundMode = forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
 	_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
 	if deliveryOption == "github" {
-		conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: "repo"}
+		conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: forms.GhDeliveryForm.GetFormItemByLabel("Github Delivery Repository").(*tview.InputField).GetText()}
 	} else {
-		conf.ControllerConfig.Delivery.Other = &helpers.DeliveryOther{Url: "test", AuthType: "Bearer"}
+		_, authType := forms.OtherDeliveryForm.GetFormItemByLabel("Authentication Type").(*tview.DropDown).GetCurrentOption()
+		conf.ControllerConfig.Delivery.Other = &helpers.DeliveryOther{
+			Url:      forms.OtherDeliveryForm.GetFormItemByLabel("Other Delivery Url").(*tview.InputField).GetText(),
+			AuthType: authType,
+		}
 	}
 
 	conf.ControllerConfig.Idp.Github.SecretName = forms.OutboundSettingsForm.GetFormItemByLabel("Github App Secret Name").(*tview.InputField).GetText()
@@ -114,8 +118,8 @@ func getValuesAndSaveYaml() {
 	case "aws":
 		conf.OnEks = true
 		awsStorage := &helpers.AwsStorage{
-			FileSystemId:  forms.StorageSettingsForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).GetText(),
-			AccessPointId: forms.StorageSettingsForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).GetText(),
+			FileSystemId:  forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).GetText(),
+			AccessPointId: forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).GetText(),
 		}
 		conf.Storage.Aws = awsStorage
 		conf.ControllerConfig.Storage.Aws = awsStorage
@@ -124,8 +128,8 @@ func getValuesAndSaveYaml() {
 	case "azure":
 		conf.OnAks = true
 		azureStorage := &helpers.AzureStorage{
-			SecretName:         forms.StorageSettingsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
-			ShareName:          forms.StorageSettingsForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText(),
+			SecretName:         forms.AzureStorageForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
+			ShareName:          forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText(),
 			StorageAccountKey:  "azurestorageaccountkey",
 			StorageAccountName: "azurestorageaccountname",
 		}
@@ -134,8 +138,8 @@ func getValuesAndSaveYaml() {
 		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	default:
 		localStorage := &helpers.LocalStorage{
-			Path:   forms.StorageSettingsForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),
-			Dbpath: forms.StorageSettingsForm.GetFormItemByLabel("Local DB Path").(*tview.InputField).GetText(),
+			Path:   forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),
+			Dbpath: forms.LocalStorageForm.GetFormItemByLabel("Local DB Path").(*tview.InputField).GetText(),
 		}
 		conf.Storage.Local = localStorage
 		conf.ControllerConfig.Storage.Local = localStorage
