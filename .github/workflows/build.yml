@@ -42,9 +42,14 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
+      - name: Run tests
+        run: |
+          make tests
+
       - name: Building deb
         run: |
           make build_deb
+
       - name: Building exe
         run: |
           make build_win
