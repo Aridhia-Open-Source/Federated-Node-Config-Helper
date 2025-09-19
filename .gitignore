@@ -1,0 +1,6 @@
+values.yaml
+.vscode/
+artifacts/**
+!.keep
+*.deb
+*.exe

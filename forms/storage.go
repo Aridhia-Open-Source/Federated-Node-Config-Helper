@@ -1,58 +1,32 @@
 package forms
 
-import "github.com/rivo/tview"
+import (
+	"strings"
 
-var storageChoices = []string{"azure", "aws", "local"}
-
-var aksSecretName = tview.NewInputField().SetLabel("Azure Storage Secret Name")
-var aksStorageAccountKey = tview.NewInputField().SetLabel("Azure Storage Account Secret Key")
-var awsStorageAccountName = tview.NewInputField().SetLabel("Azure Storage Account Name")
-var aksShareName = tview.NewInputField().SetLabel("Azure File Share")
-var awsFileId = tview.NewInputField().SetLabel("AWS File System ID")
-var awsAccessPoint = tview.NewInputField().SetLabel("AWS Access Point ID")
-var localPath = tview.NewInputField().SetLabel("Local Path")
-var localDbPath = tview.NewInputField().SetLabel("Local DB Path")
+	"github.com/rivo/tview"
+)
 
 var StorageSettingsForm = tview.NewForm().
-	AddInputField("Capacity", "1Gi", 20, nil, nil).
-	AddDropDown("Storage type", storageChoices, 0, hideFields).
-	AddFormItem(aksSecretName).
-	AddFormItem(aksStorageAccountKey).
-	AddFormItem(awsStorageAccountName).
-	AddFormItem(aksShareName).
-	AddFormItem(awsFileId).
-	AddFormItem(awsAccessPoint).
-	AddFormItem(localPath).
-	AddFormItem(localDbPath)
+	AddInputField("Capacity", "1Gi", 20, nil, nil)
 
-func hideFields(option string, optionIndex int) {
-	switch option {
+func HideFields(option string, optionIndex int) {
+	SecretsHide(option)
+	switch strings.ToLower(option) {
 	case "azure":
-		aksSecretName.SetDisabled(false)
-		aksStorageAccountKey.SetDisabled(false)
-		awsStorageAccountName.SetDisabled(false)
-		aksShareName.SetDisabled(false)
-		awsFileId.SetDisabled(true)
-		awsAccessPoint.SetDisabled(true)
-		localPath.SetDisabled(true)
-		localDbPath.SetDisabled(true)
+		StorageContainer.RemoveItem(AwsStorageForm)
+		StorageContainer.RemoveItem(LocalStorageForm)
+		StorageContainer.AddItem(AzureStorageForm, 0, 4, false)
 	case "aws":
-		aksSecretName.SetDisabled(true)
-		aksStorageAccountKey.SetDisabled(true)
-		awsStorageAccountName.SetDisabled(true)
-		aksShareName.SetDisabled(true)
-		awsFileId.SetDisabled(false)
-		awsAccessPoint.SetDisabled(false)
-		localPath.SetDisabled(true)
-		localDbPath.SetDisabled(true)
-	case "local":
-		aksSecretName.SetDisabled(true)
-		aksStorageAccountKey.SetDisabled(true)
-		awsStorageAccountName.SetDisabled(true)
-		aksShareName.SetDisabled(true)
-		awsFileId.SetDisabled(true)
-		awsAccessPoint.SetDisabled(true)
-		localPath.SetDisabled(false)
-		localDbPath.SetDisabled(false)
+		StorageContainer.RemoveItem(AzureStorageForm)
+		StorageContainer.RemoveItem(LocalStorageForm)
+		StorageContainer.AddItem(AwsStorageForm, 0, 4, false)
+	default:
+		StorageContainer.RemoveItem(AzureStorageForm)
+		StorageContainer.RemoveItem(AwsStorageForm)
+		StorageContainer.AddItem(LocalStorageForm, 0, 4, false)
 	}
 }
+
+var StorageContainer = tview.NewFlex().
+	SetDirection(tview.FlexRow).
+	AddItem(StorageSettingsForm, 0, 4, true)

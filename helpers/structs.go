@@ -1,5 +1,13 @@
 package helpers
 
+import (
+	"fmt"
+	"io"
+	"os"
+
+	"gopkg.in/yaml.v2"
+)
+
 type DBSecret struct {
 	Name string
 	Key  string
@@ -94,7 +102,15 @@ type CertConfig struct {
 	Namespace  string
 	InstallCRD bool `yaml:"installCRDs"`
 }
-
+type AzureCerts struct {
+	SecretName string `yaml:"secretName"`
+	Configmap  string
+}
+type Certs struct {
+	RotationPolicy string `yaml:"rotationPolicy"`
+	Azure          *AzureCerts
+	AWS            string
+}
 type Keycloak struct {
 	Replicas int
 }
@@ -120,5 +136,25 @@ type Config struct {
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
 	NginxIngress     NginxConfig      `yaml:"nginx-ingress"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
+	Certs            Certs
 	Global           GlobalConfig
+}
+
+func (conf Config) CreateYaml() {
+	yamlFile, err := yaml.Marshal(&conf)
+	if err != nil {
+		panic(err)
+	}
+
+	f, err := os.Create("values.yaml")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	_, err = io.Writer.Write(f, yamlFile)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("File created!")
 }
