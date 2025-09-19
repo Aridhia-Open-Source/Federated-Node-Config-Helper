@@ -9,7 +9,8 @@ import (
 
 var createNamespaceButton = tview.NewButton("Create Namespace").
 	SetSelectedFunc(func() {
-		helpers.CreateNamespace(namespaceText.GetText())
+		client, _ := helpers.NewRealKubeClient()
+		helpers.CreateNamespace(client, namespaceText.GetText())
 	})
 
 var namespaceText = tview.NewInputField().

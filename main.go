@@ -72,11 +72,13 @@ func getValuesAndSaveYaml() {
 	conf.Database.Name = forms.GeneralSettingsForm.GetFormItemByLabel("Database Name").(*tview.InputField).GetText()
 	conf.Database.Port, err = strconv.Atoi(forms.GeneralSettingsForm.GetFormItemByLabel("Database Port").(*tview.InputField).GetText())
 	if err != nil {
-		panic(err)
+		components.ErrorBoard.SetText(err.Error())
+		return
 	}
 	conf.Keycloak.Replicas, err = strconv.Atoi(forms.GeneralSettingsForm.GetFormItemByLabel("Keycloak Replicas").(*tview.InputField).GetText())
 	if err != nil {
-		panic(err)
+		components.ErrorBoard.SetText(err.Error())
+		return
 	}
 	conf.Database.Secret.Name = forms.SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
 	conf.Database.Secret.Key = "password"
@@ -95,20 +97,22 @@ func getValuesAndSaveYaml() {
 	conf.CertManager.InstallCRD = forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
 
 	conf.OutboundMode = forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
-	_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
-	if deliveryOption == "github" {
-		conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: forms.GhDeliveryForm.GetFormItemByLabel("Github Delivery Repository").(*tview.InputField).GetText()}
-	} else {
-		_, authType := forms.OtherDeliveryForm.GetFormItemByLabel("Authentication Type").(*tview.DropDown).GetCurrentOption()
-		conf.ControllerConfig.Delivery.Other = &helpers.DeliveryOther{
-			Url:      forms.OtherDeliveryForm.GetFormItemByLabel("Other Delivery Url").(*tview.InputField).GetText(),
-			AuthType: authType,
+	if conf.OutboundMode {
+		_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
+		if deliveryOption == "github" {
+			conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: forms.GhDeliveryForm.GetFormItemByLabel("Github Delivery Repository").(*tview.InputField).GetText()}
+		} else {
+			_, authType := forms.OtherDeliveryForm.GetFormItemByLabel("Authentication Type").(*tview.DropDown).GetCurrentOption()
+			conf.ControllerConfig.Delivery.Other = &helpers.DeliveryOther{
+				Url:      forms.OtherDeliveryForm.GetFormItemByLabel("Other Delivery Url").(*tview.InputField).GetText(),
+				AuthType: authType,
+			}
 		}
-	}
 
-	conf.ControllerConfig.Idp.Github.SecretName = forms.OutboundSettingsForm.GetFormItemByLabel("Github App Secret Name").(*tview.InputField).GetText()
-	conf.ControllerConfig.Idp.Github.SecretKey = "GH_SECRET"
-	conf.ControllerConfig.Idp.Github.ClientIDKey = "GH_CLIENT_ID"
+		conf.ControllerConfig.Idp.Github.SecretName = forms.GhIdpForm.GetFormItemByLabel("Github App Secret Name").(*tview.InputField).GetText()
+		conf.ControllerConfig.Idp.Github.SecretKey = "GH_SECRET"
+		conf.ControllerConfig.Idp.Github.ClientIDKey = "GH_CLIENT_ID"
+	}
 
 	conf.Certs.RotationPolicy = forms.CertSettingsForm.GetFormItemByLabel("Rotation Policy").(*tview.InputField).GetText()
 
@@ -156,5 +160,5 @@ func getValuesAndSaveYaml() {
 	conf.Global.Namespaces = namespaces
 	conf.Namespaces = namespaces
 
-	helpers.CreateYaml(&conf)
+	conf.CreateYaml()
 }

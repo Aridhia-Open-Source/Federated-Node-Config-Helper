@@ -18,9 +18,11 @@ var createGHSecretButton = tview.NewButton("Create Secrets")
 
 func init() {
 	createGHSecretButton.SetSelectedFunc(func() {
+		client, _ := helpers.NewRealKubeClient()
 		secretName := gitHubSecretName.GetText()
 		if secretName != "" {
 			helpers.CreateSecret(
+				client,
 				secretName,
 				map[string]string{
 					"GH_SECRET":    gitHubSecret.GetText(),
@@ -37,6 +39,7 @@ func init() {
 			} else {
 				components.ErrorBoard.SetText("")
 				helpers.CreateSecret(
+					client,
 					secretName,
 					map[string]string{
 						"key.pem":      string(pemKey),
@@ -49,6 +52,7 @@ func init() {
 		secretName = otherSecretName.GetText()
 		if secretName != "" {
 			helpers.CreateSecret(
+				client,
 				secretName,
 				map[string]string{
 					"auth": otherAuth.GetText(),

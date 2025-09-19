@@ -1,2 +1,4 @@
 values.yaml
 .vscode/
+artifacts/**
+!.keep

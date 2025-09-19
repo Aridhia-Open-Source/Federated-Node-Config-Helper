@@ -14,9 +14,11 @@ var SecretsForm = tview.NewForm().
 
 func init() {
 	components.CreateSecretButton.SetSelectedFunc(func() {
+		client, _ := helpers.NewRealKubeClient()
 		dbSecretName := SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
 		if dbSecretName != "" {
 			helpers.CreateSecret(
+				client,
 				dbSecretName,
 				map[string]string{
 					"password": SecretsForm.GetFormItemByLabel("Database Password").(*tview.InputField).GetText(),
@@ -26,6 +28,7 @@ func init() {
 		secretName := azureSecretName.GetText()
 		if secretName != "" {
 			helpers.CreateSecret(
+				client,
 				secretName,
 				map[string]string{
 					"azurestorageaccountkey":  azureStorageAccountKey.GetText(),
@@ -36,6 +39,7 @@ func init() {
 		secretName = azureSslSecretName.GetText()
 		if secretName != "" {
 			helpers.CreateSecret(
+				client,
 				secretName,
 				map[string]string{
 					"SP_SECRET": azureSslSPSecret.GetText(),
@@ -45,6 +49,7 @@ func init() {
 		cmName := azureSslConfigMapName.GetText()
 		if cmName != "" {
 			helpers.CreateConfigMap(
+				client,
 				cmName,
 				map[string]string{
 					"EMAIL_CERT":      azureSslEmail.GetText(),
@@ -59,6 +64,7 @@ func init() {
 		secretName = awsSSLSecretName.GetText()
 		if secretName != "" {
 			helpers.CreateSecret(
+				client,
 				secretName,
 				map[string]string{
 					"EMAIL_CERT": awsSSLEmail.GetText(),

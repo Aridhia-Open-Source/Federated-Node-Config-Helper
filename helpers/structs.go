@@ -2,8 +2,10 @@ package helpers
 
 import (
 	"fmt"
+	"io"
+	"os"
 
-	"github.com/emicklei/go-restful/v3/log"
+	"gopkg.in/yaml.v2"
 )
 
 type DBSecret struct {
@@ -138,6 +140,21 @@ type Config struct {
 	Global           GlobalConfig
 }
 
-func (c Config) Print() {
-	log.Print(fmt.Sprintf("%s\nOutbound mode: %t", c.Global.Host, c.OutboundMode))
+func (conf Config) CreateYaml() {
+	yamlFile, err := yaml.Marshal(&conf)
+	if err != nil {
+		panic(err)
+	}
+
+	f, err := os.Create("values.yaml")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	_, err = io.Writer.Write(f, yamlFile)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("File created!")
 }
