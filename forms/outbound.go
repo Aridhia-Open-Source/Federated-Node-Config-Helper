@@ -2,8 +2,8 @@ package forms
 
 import (
 	"fmt"
-	"fn-installer/components"
-	"fn-installer/helpers"
+	"fn-config-helper/components"
+	"fn-config-helper/helpers"
 	"os"
 	"strings"
 

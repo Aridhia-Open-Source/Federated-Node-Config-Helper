@@ -9,4 +9,10 @@ coverage:
 	go tool cover -html=artifacts/coverage.out -o artifacts/coverage.html
 
 debug_server:
-	./debug-server.sh
+	./scripts/debug-server.sh
+
+build_deb:
+	./scripts/build_deb.sh
+
+build_win:
+	./scripts/build_exe.sh

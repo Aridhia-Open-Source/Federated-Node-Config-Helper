@@ -1,7 +1,7 @@
 package forms
 
 import (
-	"fn-installer/components"
+	"fn-config-helper/components"
 	"os"
 	"testing"
 

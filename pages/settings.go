@@ -1,8 +1,8 @@
 package pages
 
 import (
-	"fn-installer/components"
-	"fn-installer/forms"
+	"fn-config-helper/components"
+	"fn-config-helper/forms"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"

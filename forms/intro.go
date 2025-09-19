@@ -1,8 +1,8 @@
 package forms
 
 import (
-	"fn-installer/helpers"
-	"fn-installer/state"
+	"fn-config-helper/helpers"
+	"fn-config-helper/state"
 
 	"github.com/rivo/tview"
 )

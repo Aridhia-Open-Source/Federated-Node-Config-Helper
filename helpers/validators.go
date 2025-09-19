@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"fn-installer/components"
+	"fn-config-helper/components"
 	"regexp"
 )
 

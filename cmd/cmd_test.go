@@ -1,10 +1,10 @@
-package main
+package cmd
 
 import (
 	"fmt"
-	"fn-installer/components"
-	"fn-installer/forms"
-	"fn-installer/helpers"
+	"fn-config-helper/components"
+	"fn-config-helper/forms"
+	"fn-config-helper/helpers"
 	"os"
 	"testing"
 

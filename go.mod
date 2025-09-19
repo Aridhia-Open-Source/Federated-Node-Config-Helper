@@ -1,4 +1,4 @@
-module fn-installer
+module fn-config-helper
 
 go 1.24.0
 
@@ -32,7 +32,7 @@ require (
 )
 
 require (
-	github.com/emicklei/go-restful/v3 v3.13.0
+	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.8.1

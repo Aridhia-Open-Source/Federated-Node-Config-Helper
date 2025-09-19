@@ -2,8 +2,8 @@ package helpers
 
 import (
 	"flag"
-	"fn-installer/components"
-	"fn-installer/state"
+	"fn-config-helper/components"
+	"fn-config-helper/state"
 	"path/filepath"
 
 	v1 "k8s.io/api/core/v1"

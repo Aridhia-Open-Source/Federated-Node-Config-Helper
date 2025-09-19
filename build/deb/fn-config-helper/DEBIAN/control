@@ -1,0 +1,7 @@
+Package: fn-config-helper
+Version: 1.0.0
+Section: custom
+Priority: optional
+Architecture: amd64
+Maintainer: Riccardo Casula riccardocasula@aridhia.net
+Description: A configuration helper for the Federated Node helm chart

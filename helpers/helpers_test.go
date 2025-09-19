@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"errors"
-	"fn-installer/components"
+	"fn-config-helper/components"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
