@@ -92,3 +92,16 @@ func TestDBPortIsInt(t *testing.T) {
 	assert.Equal(t, components.ErrorBoard.GetText(false), "Port should be an integer")
 	assert.True(t, components.CreateSecretButton.IsDisabled(), "Button is clickable")
 }
+
+func TestDeliveryGithub(t *testing.T) {
+	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(1)
+	if OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Github Delivery Repository") == nil {
+		t.Fatalf("GitHub form not found")
+	}
+}
+func TestDeliveryOther(t *testing.T) {
+	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(2)
+	if OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Other Delivery Url") == nil {
+		t.Fatalf("Other delivery form not found")
+	}
+}

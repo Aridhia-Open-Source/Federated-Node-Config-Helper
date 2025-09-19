@@ -63,27 +63,27 @@ func init() {
 			)
 		}
 	})
-	GHContainer.
+	OutboundContainer.
 		AddItem(OutboundSettingsForm, 0, 4, true).
 		AddItem(GhIdpForm, 0, 4, true)
 }
 
-var GHContainer = tview.NewFlex().SetDirection(tview.FlexRow)
+var OutboundContainer = tview.NewFlex().SetDirection(tview.FlexRow)
 
 func HandleDeliveryOpts(option string, optionIndex int) {
 	switch strings.ToLower(option) {
 	case "github":
-		GHContainer.RemoveItem(OtherDeliveryForm)
-		GHContainer.RemoveItem(createGHSecretButton)
-		GHContainer.AddItem(GhDeliveryForm, 0, 5, false)
-		GHContainer.AddItem(createGHSecretButton, 0, 1, false)
+		OutboundContainer.RemoveItem(OtherDeliveryForm)
+		OutboundContainer.RemoveItem(createGHSecretButton)
+		OutboundContainer.AddItem(GhDeliveryForm, 0, 5, false)
+		OutboundContainer.AddItem(createGHSecretButton, 0, 1, false)
 	case "other":
-		GHContainer.RemoveItem(GhDeliveryForm)
-		GHContainer.RemoveItem(createGHSecretButton)
-		GHContainer.AddItem(OtherDeliveryForm, 0, 5, false)
-		GHContainer.AddItem(createGHSecretButton, 0, 1, false)
+		OutboundContainer.RemoveItem(GhDeliveryForm)
+		OutboundContainer.RemoveItem(createGHSecretButton)
+		OutboundContainer.AddItem(OtherDeliveryForm, 0, 5, false)
+		OutboundContainer.AddItem(createGHSecretButton, 0, 1, false)
 	default:
-		GHContainer.RemoveItem(GhDeliveryForm)
-		GHContainer.RemoveItem(OtherDeliveryForm)
+		OutboundContainer.RemoveItem(GhDeliveryForm)
+		OutboundContainer.RemoveItem(OtherDeliveryForm)
 	}
 }

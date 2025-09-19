@@ -31,7 +31,7 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	})
 	mainSideMenu.AddItem("Outbound mode", "", '4', func() {
 		page.SwitchToPage("Outbound")
-		app.SetFocus(forms.GHContainer)
+		app.SetFocus(forms.OutboundContainer)
 	})
 	mainSideMenu.AddItem("Certificate Manager", "", '5', func() {
 		page.SwitchToPage("CertManager")
@@ -56,7 +56,7 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	page.AddPage("Secrets", forms.SecretContainer, true, false)
 	page.AddPage("General", forms.GeneralSettingsForm, true, false)
 	page.AddPage("Storage", forms.StorageContainer, true, false)
-	page.AddPage("Outbound", forms.GHContainer, true, false)
+	page.AddPage("Outbound", forms.OutboundContainer, true, false)
 	page.AddPage("Nginx", forms.NginxSettingsForm, true, false)
 	page.AddPage("CertManager", forms.CertSettingsForm, true, false)
 	page.AddPage("Namespaces", forms.NamespacesForm, true, false)
