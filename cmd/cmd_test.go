@@ -42,6 +42,7 @@ func TestProperFieldConverted(t *testing.T) {
 	getValuesAndSaveYaml()
 	_, err := os.Stat("values.yaml")
 	assert.Nil(t, err)
+	os.Remove("values.yaml")
 }
 
 func TestWrongValues(t *testing.T) {
@@ -49,12 +50,18 @@ func TestWrongValues(t *testing.T) {
 		Simple test to make sure a file is not created
 		if an error occurs
 	*/
-	// Delete the values.yaml, and ignore any errors
-	os.Remove("values.yaml")
-
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Port").(*tview.InputField).SetText("asdasdas")
 	getValuesAndSaveYaml()
 	assert.Equal(t, components.ErrorBoard.GetText(false), "strconv.Atoi: parsing \"asdasdas\": invalid syntax")
 	_, err := os.Stat("values.yaml")
 	assert.NotNil(t, err)
+}
+
+func TestArgoEnabled(t *testing.T) {
+	forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
+	getValuesAndSaveYaml()
+	_, err := os.Stat("values.yaml")
+	assert.NotNil(t, err)
+	_, err = os.Stat("argo-app-deployment.yaml")
+	assert.Nil(t, err)
 }

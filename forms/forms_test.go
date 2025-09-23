@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"fmt"
 	"fn-config-helper/components"
 	"os"
 	"testing"
@@ -26,9 +27,10 @@ func TestStorageDropdownBase(t *testing.T) {
 		Default choice is local
 	*/
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["local"])
-	if StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Local Path") == nil {
-		t.Fatalf("Azure storage form not found")
-	}
+	assert.NotNil(t,
+		StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Local Path"),
+		"Local storage form not found",
+	)
 }
 func TestStorageDropdownAzure(t *testing.T) {
 	/*
@@ -36,9 +38,10 @@ func TestStorageDropdownAzure(t *testing.T) {
 		form is rendered
 	*/
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["azure"])
-	if StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Azure File Share") == nil {
-		t.Fatalf("Azure storage form not found")
-	}
+	assert.NotNil(t,
+		StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Azure File Share"),
+		"Azure storage form not found",
+	)
 }
 
 func TestStorageDropdownAws(t *testing.T) {
@@ -47,28 +50,23 @@ func TestStorageDropdownAws(t *testing.T) {
 		form is rendered
 	*/
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["aws"])
-	if StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("AWS File System ID") == nil {
-		t.Fatalf("AWS storage form not found")
-	}
+	assert.NotNil(t,
+		StorageContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("AWS File System ID"),
+		"AWS storage form not found",
+	)
 }
 
 func TestCertManagerDropdownDefault(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["local"])
-	if SecretContainer.GetItemCount() > 2 {
-		t.Fatalf("Expected 2 elements. Got %d", SecretContainer.GetItemCount())
-	}
+	assert.Equal(t, SecretContainer.GetItemCount(), 2, fmt.Sprintf("Expected 2 elements. Got %d", SecretContainer.GetItemCount()))
 }
 func TestCertManagerDropdownAzure(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["azure"])
-	if SecretContainer.GetItemCount() != 3 {
-		t.Fatalf("Azure Form not rendered")
-	}
+	assert.Equal(t, SecretContainer.GetItemCount(), 3, "Azure Form not rendered")
 }
 func TestCertManagerDropdownAws(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["aws"])
-	if SecretContainer.GetItemCount() != 3 {
-		t.Fatalf("AWS Form not rendered")
-	}
+	assert.Equal(t, SecretContainer.GetItemCount(), 3, "AWS Form not rendered")
 }
 
 func TestCertManagerEmailValidator(t *testing.T) {
@@ -95,13 +93,23 @@ func TestDBPortIsInt(t *testing.T) {
 
 func TestDeliveryGithub(t *testing.T) {
 	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(1)
-	if OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Github Delivery Repository") == nil {
-		t.Fatalf("GitHub form not found")
-	}
+	assert.NotNil(t,
+		OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Github Delivery Repository"),
+		"GitHub form not found",
+	)
 }
 func TestDeliveryOther(t *testing.T) {
 	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(2)
-	if OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Other Delivery Url") == nil {
-		t.Fatalf("Other delivery form not found")
-	}
+	assert.NotNil(t,
+		OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Other Delivery Url"),
+		"Other delivery form not found",
+	)
+}
+
+func TestArgoForm(t *testing.T) {
+	IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
+	assert.NotNil(t,
+		IntroContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("App name"),
+		"Argo form not found",
+	)
 }
