@@ -4,11 +4,11 @@ Copyright © 2025 Riccardo Casula <riccardocasula@aridhia.net>
 package cmd
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/rivo/tview"
+	"go.yaml.in/yaml/v2"
 
 	"fn-config-helper/components"
 	"fn-config-helper/forms"
@@ -17,8 +17,9 @@ import (
 	"fn-config-helper/state"
 )
 
+var app = tview.NewApplication()
+
 func Execute() {
-	app := tview.NewApplication()
 
 	// Main Buttons
 	saveButton := tview.NewButton("Save")
@@ -27,19 +28,6 @@ func Execute() {
 	}).SetBorder(true)
 	quitButton := tview.NewButton("Quit")
 	quitButton.SetSelectedFunc(func() { app.Stop() }).SetBorder(true)
-
-	footer := tview.NewTextView()
-
-	footer.SetBorder(true)
-	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", state.State.Namespace))
-	forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).
-		SetChangedFunc(func(text string) {
-			if text == "" {
-				text = "default"
-			}
-			state.State.Namespace = text
-			footer.SetText(fmt.Sprintf("Deploy command:\nhelm install federatednode -n %s -f values.yaml", text))
-		})
 
 	page, mainSideMenu := pages.CreateMainPage(app)
 
@@ -51,7 +39,7 @@ func Execute() {
 			AddItem(quitButton, 0, 1, false), 0, 1, true).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(page, 0, 8, false).
-			AddItem(footer, 0, 1, false).
+			AddItem(components.Footer, 0, 1, false).
 			AddItem(components.ErrorBoard, 0, 1, false), 0, 1, false)
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
@@ -160,5 +148,27 @@ func getValuesAndSaveYaml() {
 	conf.Global.Namespaces = namespaces
 	conf.Namespaces = namespaces
 
-	conf.CreateYaml()
+	if forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).IsChecked() {
+		argo := helpers.InitArgoStruct()
+		argo.Metadata.Name = forms.AppName.GetText()
+		argo.Spec.Project = "default"
+		argo.Metadata.Namespace = "argocd"
+		argo.Spec.Destination.Namespace = forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).GetText()
+		argo.Spec.Source.TargetRevision = forms.BranchOrTagName.GetText()
+
+		stringConf, err := yaml.Marshal(&conf)
+		if err != nil {
+			panic(err)
+		}
+
+		argo.Spec.Source.Helm.Values = string(stringConf)
+		argo.Spec.SyncPolicy.SyncOptions = []string{"RespectIgnoreDifferences=true"}
+		if forms.AutomaticSync.IsChecked() {
+			argo.Spec.SyncPolicy.Automated = &helpers.Automated{}
+		}
+
+		argo.CreateYaml()
+	} else {
+		conf.CreateYaml()
+	}
 }

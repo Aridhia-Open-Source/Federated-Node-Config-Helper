@@ -1,4 +1,4 @@
-values.yaml
+*.yaml
 .vscode/
 artifacts/**
 !.keep
