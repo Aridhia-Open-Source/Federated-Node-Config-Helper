@@ -50,7 +50,7 @@ func init() {
 	IntroContainer.AddItem(IntroForm, 0, 4, true).
 		AddItem(createNamespaceButton, 0, 1, false)
 	useArgoCheckbox.
-		SetLabel("Deploying via ArgoCD?").
+		SetLabel("Use ArgoCD to deploy?").
 		SetChangedFunc(
 			func(checked bool) {
 				if checked {
