@@ -46,21 +46,24 @@ var IntroForm = tview.NewForm().
 var IntroContainer = tview.NewFlex().SetDirection(tview.FlexRow)
 
 func init() {
-	IntroContainer.AddItem(IntroForm, 0, 3, true).
+	createNamespaceButton.SetBorder(true)
+	IntroContainer.AddItem(IntroForm, 0, 4, true).
 		AddItem(createNamespaceButton, 0, 1, false)
-	useArgoCheckbox.SetChangedFunc(
-		func(checked bool) {
-			if checked {
-				IntroContainer.RemoveItem(createNamespaceButton)
-				IntroContainer.AddItem(ArgoForm, 0, 2, false)
-				IntroContainer.AddItem(createNamespaceButton, 0, 1, false)
-				components.Footer.SetText("Deploy command:\n\nkubectl apply -f argo-app-deployment.yaml")
+	useArgoCheckbox.
+		SetLabel("Deploying via ArgoCD?").
+		SetChangedFunc(
+			func(checked bool) {
+				if checked {
+					IntroContainer.RemoveItem(createNamespaceButton)
+					IntroContainer.AddItem(ArgoForm, 0, 4, false)
+					IntroContainer.AddItem(createNamespaceButton, 0, 1, false)
+					components.Footer.SetText("Deploy command:\n\nkubectl apply -f argo-app-deployment.yaml")
 
-			} else {
-				IntroContainer.RemoveItem(ArgoForm)
-				components.Footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", namespaceText.GetText()))
+				} else {
+					IntroContainer.RemoveItem(ArgoForm)
+					components.Footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", namespaceText.GetText()))
 
-			}
-		},
-	)
+				}
+			},
+		)
 }

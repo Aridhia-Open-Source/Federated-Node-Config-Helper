@@ -23,24 +23,29 @@ func Execute() {
 
 	// Main Buttons
 	saveButton := tview.NewButton("Save")
-	saveButton.SetSelectedFunc(func() {
-		getValuesAndSaveYaml()
-	}).SetBorder(true)
+	saveButton.
+		SetSelectedFunc(func() {
+			getValuesAndSaveYaml()
+		}).
+		SetBorder(true)
 	quitButton := tview.NewButton("Quit")
-	quitButton.SetSelectedFunc(func() { app.Stop() }).SetBorder(true)
+	quitButton.
+		SetSelectedFunc(func() { app.Stop() }).
+		SetBorder(true)
 
 	page, mainSideMenu := pages.CreateMainPage(app)
 
 	// Main app handlers
-	flex := tview.NewFlex().
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(mainSideMenu, 0, 8, true).
-			AddItem(saveButton, 0, 1, false).
-			AddItem(quitButton, 0, 1, false), 0, 1, true).
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(page, 0, 8, false).
+	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
 			AddItem(components.Footer, 0, 1, false).
-			AddItem(components.ErrorBoard, 0, 1, false), 0, 1, false)
+			AddItem(components.ErrorBoard, 0, 1, false), 0, 2, false).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
+			AddItem(mainSideMenu, 0, 8, true).
+			AddItem(page, 0, 8, false), 0, 7, true).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
+			AddItem(saveButton, 0, 1, false).
+			AddItem(quitButton, 0, 1, false), 0, 1, false)
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
