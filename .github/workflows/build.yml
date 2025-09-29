@@ -62,7 +62,7 @@ jobs:
         if: env.IS_TAG == 'true'
         with:
             artifacts: "artifacts/fn-config-helper*"
-            tag: {{ github.ref_name }}
+            tag: ${{ github.ref_name }}
             skipIfReleaseExists: true
             makeLatest: true
             # bodyFile: ReleaseNotes.md
