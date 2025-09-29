@@ -7,7 +7,7 @@ import (
 )
 
 var azureSecretName = tview.NewInputField().
-	SetLabel("Azure Secret Name")
+	SetLabel("Azure Storage Secret Name")
 var azureStorageAccountName = tview.NewInputField().
 	SetLabel("Azure Storage Account Name")
 var azureStorageAccountKey = tview.NewInputField().

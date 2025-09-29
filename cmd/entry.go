@@ -125,7 +125,7 @@ func getValuesAndSaveYaml() {
 	case "azure":
 		conf.OnAks = true
 		azureStorage := &helpers.AzureStorage{
-			SecretName:         forms.AzureStorageForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
+			SecretName:         forms.AzureSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
 			ShareName:          forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText(),
 			StorageAccountKey:  "azurestorageaccountkey",
 			StorageAccountName: "azurestorageaccountname",
