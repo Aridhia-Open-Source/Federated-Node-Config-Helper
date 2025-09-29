@@ -1,6 +1,12 @@
 .PHONY: *
 SHELL = /bin/bash
 
+tests_ci:
+	docker rmi --force test_go_cfg
+	docker build -f tests.Dockerfile . -t test_go_cfg
+	docker run --rm test_go_cfg
+	docker rmi test_go_cfg
+
 tests:
 	go test ./...
 

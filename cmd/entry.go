@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/rivo/tview"
+	"go.yaml.in/yaml/v2"
 
 	"fn-config-helper/components"
 	"fn-config-helper/forms"
@@ -17,42 +18,35 @@ import (
 	"fn-config-helper/state"
 )
 
+var app = tview.NewApplication()
+
 func Execute() {
-	app := tview.NewApplication()
 
 	// Main Buttons
 	saveButton := tview.NewButton("Save")
-	saveButton.SetSelectedFunc(func() {
-		getValuesAndSaveYaml()
-	}).SetBorder(true)
+	saveButton.
+		SetSelectedFunc(func() {
+			getValuesAndSaveYaml()
+		}).
+		SetBorder(true)
 	quitButton := tview.NewButton("Quit")
-	quitButton.SetSelectedFunc(func() { app.Stop() }).SetBorder(true)
-
-	footer := tview.NewTextView()
-
-	footer.SetBorder(true)
-	footer.SetText(fmt.Sprintf("Deploy command:\n\nhelm install federatednode -n %s -f values.yaml", state.State.Namespace))
-	forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).
-		SetChangedFunc(func(text string) {
-			if text == "" {
-				text = "default"
-			}
-			state.State.Namespace = text
-			footer.SetText(fmt.Sprintf("Deploy command:\nhelm install federatednode -n %s -f values.yaml", text))
-		})
+	quitButton.
+		SetSelectedFunc(func() { app.Stop() }).
+		SetBorder(true)
 
 	page, mainSideMenu := pages.CreateMainPage(app)
 
 	// Main app handlers
-	flex := tview.NewFlex().
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
+			AddItem(components.Footer, 0, 1, false).
+			AddItem(components.ErrorBoard, 0, 1, false), 0, 2, false).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
 			AddItem(mainSideMenu, 0, 8, true).
+			AddItem(page, 0, 8, false), 0, 7, true).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
 			AddItem(saveButton, 0, 1, false).
-			AddItem(quitButton, 0, 1, false), 0, 1, true).
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(page, 0, 8, false).
-			AddItem(footer, 0, 1, false).
-			AddItem(components.ErrorBoard, 0, 1, false), 0, 1, false)
+			AddItem(quitButton, 0, 1, false), 0, 1, false)
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
@@ -82,7 +76,7 @@ func getValuesAndSaveYaml() {
 	}
 	conf.Database.Secret.Name = forms.SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
 	conf.Database.Secret.Key = "password"
-
+	fmt.Println("check")
 	conf.NginxIngress.Enabled = forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
 	conf.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
 	conf.Global.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
@@ -132,7 +126,7 @@ func getValuesAndSaveYaml() {
 	case "azure":
 		conf.OnAks = true
 		azureStorage := &helpers.AzureStorage{
-			SecretName:         forms.AzureStorageForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
+			SecretName:         forms.AzureSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
 			ShareName:          forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText(),
 			StorageAccountKey:  "azurestorageaccountkey",
 			StorageAccountName: "azurestorageaccountname",
@@ -160,5 +154,27 @@ func getValuesAndSaveYaml() {
 	conf.Global.Namespaces = namespaces
 	conf.Namespaces = namespaces
 
-	conf.CreateYaml()
+	if forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).IsChecked() {
+		argo := helpers.InitArgoStruct()
+		argo.Metadata.Name = forms.AppName.GetText()
+		argo.Spec.Project = "default"
+		argo.Metadata.Namespace = "argocd"
+		argo.Spec.Destination.Namespace = forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).GetText()
+		argo.Spec.Source.TargetRevision = forms.BranchOrTagName.GetText()
+
+		stringConf, err := yaml.Marshal(&conf)
+		if err != nil {
+			panic(err)
+		}
+
+		argo.Spec.Source.Helm.Values = string(stringConf)
+		argo.Spec.SyncPolicy.SyncOptions = []string{"RespectIgnoreDifferences=true"}
+		if forms.AutomaticSync.IsChecked() {
+			argo.Spec.SyncPolicy.Automated = &helpers.Automated{}
+		}
+
+		argo.CreateYaml("argo-app-deployment.yaml")
+	} else {
+		conf.CreateYaml("values.yaml")
+	}
 }
