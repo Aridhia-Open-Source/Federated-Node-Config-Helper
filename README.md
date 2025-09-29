@@ -5,9 +5,9 @@ This lightweight tool will help in setting the Helm Chart values file, required 
 ![example](./images/home.png)
 
 ## How to run
-We do provide executables for both Debian and Windows systems, for now. Simply download them from the Release section.
+We do provide executables for both Debian and Windows systems, for now. Simply download them from the [Release section](https://github.com/Aridhia-Open-Source/Federated-Node-Config-Helper/releases).
 
-Or, if you already have Golang installed, run
+Alternatively, you can [install Go](https://go.dev/doc/install) and run
 ```sh
 go install github.com/Aridhia-Open-Source/Federated-Node-Config-Helper
 ```
