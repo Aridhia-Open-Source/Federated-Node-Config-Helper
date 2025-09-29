@@ -1,0 +1,31 @@
+package cmd
+
+import (
+	"fmt"
+	"fn-config-helper/forms"
+	"log"
+	"os"
+	"testing"
+
+	"github.com/rivo/tview"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestArgoEnabled(t *testing.T) {
+	forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
+	getValuesAndSaveYaml()
+	entries, err := os.ReadDir("./")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, e := range entries {
+		fmt.Println(e.Name())
+	}
+	_, err = os.Stat("values.yaml")
+	assert.NotNil(t, err)
+	_, err = os.Stat("argo-app-deployment.yaml")
+	assert.Nil(t, err)
+	os.Remove("argo-app-deployment.yaml")
+	forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(false)
+}

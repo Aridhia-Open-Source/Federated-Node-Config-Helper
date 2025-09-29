@@ -140,13 +140,13 @@ type Config struct {
 	Global           GlobalConfig
 }
 
-func (conf Config) CreateYaml() {
+func (conf Config) CreateYaml(fileName string) {
 	yamlFile, err := yaml.Marshal(&conf)
 	if err != nil {
 		panic(err)
 	}
 
-	f, err := os.Create("values.yaml")
+	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
 	}

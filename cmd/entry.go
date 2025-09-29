@@ -4,6 +4,7 @@ Copyright © 2025 Riccardo Casula <riccardocasula@aridhia.net>
 package cmd
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -75,7 +76,7 @@ func getValuesAndSaveYaml() {
 	}
 	conf.Database.Secret.Name = forms.SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
 	conf.Database.Secret.Key = "password"
-
+	fmt.Println("check")
 	conf.NginxIngress.Enabled = forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
 	conf.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
 	conf.Global.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
@@ -172,8 +173,8 @@ func getValuesAndSaveYaml() {
 			argo.Spec.SyncPolicy.Automated = &helpers.Automated{}
 		}
 
-		argo.CreateYaml()
+		argo.CreateYaml("argo-app-deployment.yaml")
 	} else {
-		conf.CreateYaml()
+		conf.CreateYaml("values.yaml")
 	}
 }

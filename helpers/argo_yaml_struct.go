@@ -62,13 +62,13 @@ func InitArgoStruct() ArgoCD {
 	return baseArgo
 }
 
-func (conf ArgoCD) CreateYaml() {
+func (conf ArgoCD) CreateYaml(fileName string) {
 	yamlFile, err := yaml.Marshal(&conf)
 	if err != nil {
 		panic(err)
 	}
 
-	f, err := os.Create("argo-app-deployment.yaml")
+	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
 	}
