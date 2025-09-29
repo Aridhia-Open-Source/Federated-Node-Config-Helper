@@ -1,0 +1,6 @@
+*.yaml
+*.md
+LICENSE
+Makefile
+.vscode
+.github

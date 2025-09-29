@@ -47,7 +47,7 @@ jobs:
 
       - name: Run tests
         run: |
-          make tests
+          make tests_ci
 
       - name: Building deb
         run: |
