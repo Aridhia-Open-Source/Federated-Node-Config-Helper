@@ -43,28 +43,34 @@ func (f *FakeKubeClient) CreateSecret(namespace string, secret *v1.Secret) (*v1.
 	}
 	return secret, nil
 }
-
+func cleanup() {
+	components.ErrorBoard.SetText("")
+}
 func TestErrorNamespaceHandler(t *testing.T) {
+	defer cleanup()
 	client := &FakeKubeClient{ShouldFail: true, AlreadyExists: true}
 
 	CreateNamespace(client, "new")
 	assert.Equal(t, components.ErrorBoard.GetText(false), "Namespace already exists")
 }
 func TestErrorConfigMapHandler(t *testing.T) {
+	defer cleanup()
 	client := &FakeKubeClient{ShouldFail: true, AlreadyExists: true}
 
 	CreateConfigMap(client, "cmname", map[string]string{"field": "value"})
 	assert.Equal(t, components.ErrorBoard.GetText(false), "Configmap already exists")
 }
 func TestErrorSecretHandler(t *testing.T) {
+	defer cleanup()
 	client := &FakeKubeClient{ShouldFail: true, AlreadyExists: true}
 
 	CreateSecret(client, "sec-name", map[string]string{"field": "value"})
-	assert.Equal(t, components.ErrorBoard.GetText(false), "secret already exists")
+	assert.Equal(t, "secret already exists", components.ErrorBoard.GetText(false))
 }
 func TestRandomErrorHandler(t *testing.T) {
+	defer cleanup()
 	client := &FakeKubeClient{ShouldFail: true, AlreadyExists: false}
 
 	CreateSecret(client, "sec-name", map[string]string{"field": "value"})
-	assert.Equal(t, components.ErrorBoard.GetText(false), "some other error")
+	assert.Equal(t, "some other error", components.ErrorBoard.GetText(false))
 }

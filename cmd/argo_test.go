@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"fn-config-helper/components"
 	"fn-config-helper/forms"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 )
 
 func TestArgoEnabled(t *testing.T) {
+	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
 	forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
 	getValuesAndSaveYaml()
 	entries, err := os.ReadDir("./")
@@ -25,7 +27,7 @@ func TestArgoEnabled(t *testing.T) {
 	_, err = os.Stat("values.yaml")
 	assert.NotNil(t, err)
 	_, err = os.Stat("argo-app-deployment.yaml")
-	assert.Nil(t, err)
+	assert.Nil(t, err, components.ErrorBoard.GetText(true))
 	os.Remove("argo-app-deployment.yaml")
 	forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(false)
 }

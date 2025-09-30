@@ -28,5 +28,6 @@ func NewCapacityInput() *CapacityInput {
 			ErrorBoard.SetText("")
 		}
 	})
+	custom.SetText("1Gi")
 	return custom
 }

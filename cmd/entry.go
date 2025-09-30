@@ -170,7 +170,7 @@ func getValuesAndSaveYaml() {
 		return
 	}
 	conf.Storage.Capacity = capacityField.GetText()
-	conf.ControllerConfig.Storage.Capacity = forms.StorageSettingsForm.GetFormItemByLabel("Capacity").(*tview.InputField).GetText()
+	conf.ControllerConfig.Storage.Capacity = capacityField.GetText()
 
 	// Namespaces
 	namespaces := helpers.Namespaces{
