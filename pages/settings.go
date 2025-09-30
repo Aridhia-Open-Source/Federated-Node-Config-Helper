@@ -61,5 +61,7 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	page.AddPage("CertManager", forms.CertSettingsForm, true, false)
 	page.AddPage("Namespaces", forms.NamespacesForm, true, false)
 
+	page.SetBorder(true)
+
 	return page, mainSideMenu
 }

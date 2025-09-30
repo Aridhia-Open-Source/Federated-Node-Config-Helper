@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"flag"
+	"fmt"
 	"fn-config-helper/components"
 	"fn-config-helper/state"
 	"path/filepath"
@@ -30,6 +31,18 @@ func CreateSecret(k8s KubeClient, name string, data map[string]string, labels ..
 	var label map[string]string
 	if len(labels) > 0 {
 		label = labels[0]
+	}
+	for k, v := range data {
+		if v == "" {
+			components.ErrorBoard.SetText(
+				fmt.Sprintf("%s\n%s cannot be empty", components.ErrorBoard.GetText(true), k),
+			)
+		}
+	}
+	if components.ErrorBoard.GetText(true) != "" {
+		return
+	} else {
+		components.ErrorBoard.SetText("")
 	}
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{

@@ -65,7 +65,8 @@ func init() {
 	})
 	OutboundContainer.
 		AddItem(OutboundSettingsForm, 0, 4, true).
-		AddItem(GhIdpForm, 0, 4, true)
+		AddItem(GhIdpForm, 0, 4, false).
+		AddItem(createGHSecretButton, 0, 2, false)
 }
 
 var OutboundContainer = tview.NewFlex().SetDirection(tview.FlexRow)
