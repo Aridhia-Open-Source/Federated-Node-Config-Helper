@@ -5,38 +5,30 @@ import (
 	"github.com/rivo/tview"
 )
 
-type CreateConfigButton struct {
+type ConfigButton struct {
 	*tview.Button
 }
 
-func NewCreateConfigButton(label string) *CreateConfigButton {
+func NewConfigButton(label string, color tcell.Color) *ConfigButton {
 	baseButton := tview.NewButton(label)
 
-	custom := &CreateConfigButton{baseButton}
+	custom := &ConfigButton{baseButton}
 	style := tcell.Style{}
-	style = style.Background(tcell.ColorDarkGreen)
-	style = style.Foreground(tcell.ColorDarkGreen)
+	style = style.Background(color)
+	style = style.Foreground(color)
 
 	custom.SetStyle(style)
 
-	custom.SetBackgroundColorActivated(tcell.ColorDarkGreen)
+	custom.SetBackgroundColorActivated(color)
 	custom.SetLabelColorActivated(tcell.ColorWhite)
 	custom.SetLabelColor(tcell.ColorWhite)
 	return custom
 }
 
-func NewCreateQuitButton(label string) *CreateConfigButton {
-	baseButton := tview.NewButton(label)
+func NewCreateConfigButton(label string) *ConfigButton {
+	return NewConfigButton(label, tcell.ColorDarkGreen)
+}
 
-	custom := &CreateConfigButton{baseButton}
-	style := tcell.Style{}
-	style = style.Background(tcell.ColorDarkRed)
-	style = style.Foreground(tcell.ColorDarkRed)
-
-	custom.SetStyle(style)
-
-	custom.SetBackgroundColorActivated(tcell.ColorDarkRed)
-	custom.SetLabelColorActivated(tcell.ColorWhite)
-	custom.SetLabelColor(tcell.ColorWhite)
-	return custom
+func NewCreateQuitButton(label string) *ConfigButton {
+	return NewConfigButton(label, tcell.ColorDarkRed)
 }
