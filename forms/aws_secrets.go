@@ -12,7 +12,7 @@ var awsSSLEmail = tview.NewInputField().
 	SetLabel("AWS SSL Email").
 	SetChangedFunc(helpers.EmailValidator)
 var awsSSLRegion = tview.NewInputField().
-	SetLabel("AWS SSL Account ID")
+	SetLabel("AWS SSL Region")
 var awsSSLAccountId = tview.NewInputField().
 	SetLabel("AWS SSL Account ID")
 var awsSSLRoleName = tview.NewInputField().

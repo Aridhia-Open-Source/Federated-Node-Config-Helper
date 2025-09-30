@@ -16,17 +16,30 @@ func init() {
 	components.CreateSecretButton.SetSelectedFunc(func() {
 		client, _ := helpers.NewRealKubeClient()
 		dbSecretName := SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
+		dbPass := SecretsForm.GetFormItemByLabel("Database Password").(*tview.InputField).GetText()
 		if dbSecretName != "" {
+			if dbPass == "" {
+				components.ErrorBoard.SetText("The Database Password field cannot be empty")
+				return
+			} else {
+				components.ErrorBoard.SetText("")
+			}
 			helpers.CreateSecret(
 				client,
 				dbSecretName,
 				map[string]string{
-					"password": SecretsForm.GetFormItemByLabel("Database Password").(*tview.InputField).GetText(),
+					"password": dbPass,
 				},
 			)
 		}
 		secretName := azureSecretName.GetText()
 		if secretName != "" {
+			if azureStorageAccountKey.GetText() == "" || azureStorageAccountName.GetText() == "" {
+				components.ErrorBoard.SetText("Both storage account key and name should not be empty")
+				return
+			} else {
+				components.ErrorBoard.SetText("")
+			}
 			helpers.CreateSecret(
 				client,
 				secretName,
@@ -38,6 +51,12 @@ func init() {
 		}
 		secretName = azureSslSecretName.GetText()
 		if secretName != "" {
+			if azureSslSPSecret.GetText() == "" {
+				components.ErrorBoard.SetText("The SSL secret field cannot be empty")
+				return
+			} else {
+				components.ErrorBoard.SetText("")
+			}
 			helpers.CreateSecret(
 				client,
 				secretName,

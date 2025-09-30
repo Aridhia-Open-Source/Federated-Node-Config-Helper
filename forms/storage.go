@@ -1,13 +1,16 @@
 package forms
 
 import (
+	"fn-config-helper/components"
 	"strings"
 
 	"github.com/rivo/tview"
 )
 
+var storageCapacity = components.NewCapacityInput()
+
 var StorageSettingsForm = tview.NewForm().
-	AddInputField("Capacity", "1Gi", 20, nil, nil)
+	AddFormItem(storageCapacity)
 
 func HideFields(option string, optionIndex int) {
 	SecretsHide(option)
