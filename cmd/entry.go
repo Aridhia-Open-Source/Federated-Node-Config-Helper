@@ -136,8 +136,7 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Aws = awsStorage
 		conf.ControllerConfig.Storage.Aws = awsStorage
-		conf.Certs.Azure.Configmap = forms.AzureStorageForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
-		conf.Certs.Azure.SecretName = forms.AzureStorageForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
+		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	case "azure":
 		conf.OnAks = true
 
@@ -154,7 +153,8 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Azure = azureStorage
 		conf.ControllerConfig.Storage.Azure = azureStorage
-		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
+		conf.Certs.Azure.Configmap = forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
+		conf.Certs.Azure.SecretName = forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
 	default:
 		localStorage := &helpers.LocalStorage{
 			Path:   forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),
