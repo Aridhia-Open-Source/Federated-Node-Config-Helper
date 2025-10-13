@@ -6,12 +6,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-var azureSecretName = tview.NewInputField().
-	SetLabel("Azure Storage Secret Name")
-var azureStorageAccountName = tview.NewInputField().
-	SetLabel("Azure Storage Account Name")
-var azureStorageAccountKey = tview.NewInputField().
-	SetLabel("Azure Storage Account Key")
 var azureSslSecretName = tview.NewInputField().
 	SetLabel("Azure SSL Secret Name")
 var azureSslSPSecret = tview.NewInputField().
@@ -33,9 +27,7 @@ var azureSslSubscriptionId = tview.NewInputField().
 var azureSslTenantId = tview.NewInputField().
 	SetLabel("Azure SSL Tenant ID")
 
-var AzureSecretsForm = tview.NewForm().AddFormItem(azureSecretName).
-	AddFormItem(azureStorageAccountKey).
-	AddFormItem(azureStorageAccountName).
+var AzureSSLSecretsForm = tview.NewForm().
 	AddFormItem(azureSslSecretName).
 	AddFormItem(azureSslSPSecret).
 	AddFormItem(azureSslConfigMapName).
@@ -45,3 +37,7 @@ var AzureSecretsForm = tview.NewForm().AddFormItem(azureSecretName).
 	AddFormItem(azureSslSPId).
 	AddFormItem(azureSslSubscriptionId).
 	AddFormItem(azureSslTenantId)
+
+func init() {
+	AzureSSLSecretsForm.SetBorder(true).SetTitle("SSL")
+}

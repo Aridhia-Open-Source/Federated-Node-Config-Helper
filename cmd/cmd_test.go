@@ -15,6 +15,7 @@ func tearDown() {
 	os.Remove("values.yaml")
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("")
 }
+
 func TestSaveYaml(t *testing.T) {
 	/*
 		Test to make sure the file is created successful with
@@ -49,8 +50,8 @@ func TestProperFieldConverted(t *testing.T) {
 	defer tearDown()
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
 	getValuesAndSaveYaml()
-	_, err := os.Stat("values.yaml")
-	assert.Nil(t, err)
+	vals, _ := helpers.ReadYAML("values.yaml")
+	assert.Equal(t, vals.Database.Hostname, "host")
 }
 
 func TestWrongValues(t *testing.T) {
@@ -64,4 +65,24 @@ func TestWrongValues(t *testing.T) {
 	assert.Equal(t, components.ErrorBoard.GetText(false), "strconv.Atoi: parsing \"asdasdas\": invalid syntax")
 	_, err := os.Stat("values.yaml")
 	assert.NotNil(t, err)
+	forms.GeneralSettingsForm.GetFormItemByLabel("Database Port").(*tview.InputField).SetText("5432")
+}
+
+func TestFirstUserIgnored(t *testing.T) {
+	defer tearDown()
+	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
+	getValuesAndSaveYaml()
+
+	vals, _ := helpers.ReadYAML("values.yaml")
+	assert.Nil(t, vals.FirstUserSecret)
+}
+
+func TestFirstUserFilled(t *testing.T) {
+	defer tearDown()
+	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
+	forms.FirstUserFrom.GetFormItemByLabel("User password").(*tview.InputField).SetText("asdasdas")
+	getValuesAndSaveYaml()
+
+	vals, _ := helpers.ReadYAML("values.yaml")
+	assert.NotNil(t, vals.FirstUserSecret)
 }

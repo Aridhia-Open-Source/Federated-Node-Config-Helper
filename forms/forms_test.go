@@ -58,15 +58,15 @@ func TestStorageDropdownAws(t *testing.T) {
 
 func TestCertManagerDropdownDefault(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["local"])
-	assert.Equal(t, SecretContainer.GetItemCount(), 2, fmt.Sprintf("Expected 2 elements. Got %d", SecretContainer.GetItemCount()))
+	assert.Equal(t, 1, subSideMenu.GetItemCount(), fmt.Sprintf("Expected 2 elements. Got %d", subSideMenu.GetItemCount()))
 }
 func TestCertManagerDropdownAzure(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["azure"])
-	assert.Equal(t, SecretContainer.GetItemCount(), 3, "Azure Form not rendered")
+	assert.Equal(t, 2, subSideMenu.GetItemCount(), "Azure Form not rendered")
 }
 func TestCertManagerDropdownAws(t *testing.T) {
 	CloudPlatformDropDown.SetCurrentOption(dropdownChoices["aws"])
-	assert.Equal(t, SecretContainer.GetItemCount(), 3, "AWS Form not rendered")
+	assert.Equal(t, 2, subSideMenu.GetItemCount(), "AWS Form not rendered")
 }
 
 func TestCertManagerEmailValidator(t *testing.T) {

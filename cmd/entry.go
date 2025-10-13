@@ -136,8 +136,8 @@ func getValuesAndSaveYaml() {
 		}
 		conf.Storage.Aws = awsStorage
 		conf.ControllerConfig.Storage.Aws = awsStorage
-		conf.Certs.Azure.Configmap = forms.AzureSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
-		conf.Certs.Azure.SecretName = forms.AzureSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
+		conf.Certs.Azure.Configmap = forms.AzureStorageForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
+		conf.Certs.Azure.SecretName = forms.AzureStorageForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
 	case "azure":
 		conf.OnAks = true
 
@@ -147,7 +147,7 @@ func getValuesAndSaveYaml() {
 			return
 		}
 		azureStorage := &helpers.AzureStorage{
-			SecretName:         forms.AzureSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
+			SecretName:         forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
 			ShareName:          azureFileShare,
 			StorageAccountKey:  "azurestorageaccountkey",
 			StorageAccountName: "azurestorageaccountname",
@@ -180,6 +180,17 @@ func getValuesAndSaveYaml() {
 	}
 	conf.Global.Namespaces = namespaces
 	conf.Namespaces = namespaces
+
+	// First User
+	if forms.FirstUserFrom.GetFormItemByLabel("User password").(*tview.InputField).GetText() != "" {
+		conf.FirstUserSecret = &helpers.FirstUser{
+			Name:      forms.FirstUserFrom.GetFormItemByLabel("Secret Name").(*tview.InputField).GetText(),
+			PassKey:   forms.FirstUserFrom.GetFormItemByLabel("Password Key").(*tview.InputField).GetText(),
+			FirstName: forms.FirstUserFrom.GetFormItemByLabel("First Name").(*tview.InputField).GetText(),
+			LastName:  forms.FirstUserFrom.GetFormItemByLabel("Last Name").(*tview.InputField).GetText(),
+			Email:     forms.FirstUserFrom.GetFormItemByLabel("Email").(*tview.InputField).GetText(),
+		}
+	}
 
 	// ArgoCD
 	if forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).IsChecked() {

@@ -9,10 +9,12 @@ import (
 )
 
 var SecretsForm = tview.NewForm().
-	AddInputField("Database Secret Name", "", 20, nil, nil).
-	AddPasswordField("Database Password", "", 20, rune('*'), nil)
+	AddInputField("Database Secret Name", "internal-db", 0, nil, nil).
+	AddPasswordField("Database Password", "", 0, rune('*'), nil)
 
 func init() {
+	subSideMenu.SetBorder(true).SetTitle("Platforms")
+	SecretsForm.SetBorder(true).SetTitle("Internal Database")
 	components.CreateSecretButton.SetSelectedFunc(func() {
 		client, _ := helpers.NewRealKubeClient()
 		dbSecretName := SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).GetText()
@@ -32,6 +34,18 @@ func init() {
 				},
 			)
 		}
+
+		userPass := FirstUserFrom.GetFormItemByLabel("User password").(*tview.InputField).GetText()
+		if userPass != "" {
+			helpers.CreateSecret(
+				client,
+				FirstUserFrom.GetFormItemByLabel("Secret Name").(*tview.InputField).GetText(),
+				map[string]string{
+					FirstUserFrom.GetFormItemByLabel("Password Key").(*tview.InputField).GetText(): userPass,
+				},
+			)
+		}
+
 		secretName := azureSecretName.GetText()
 		if secretName != "" {
 			if azureStorageAccountKey.GetText() == "" || azureStorageAccountName.GetText() == "" {
@@ -96,28 +110,62 @@ func init() {
 	})
 }
 
-var SecretContainer = tview.NewFlex().SetDirection(tview.FlexRow).
-	AddItem(SecretsForm, 0, 3, true).
-	AddItem(components.CreateSecretButton, 0, 1, false)
+var GlobalSecretContainer = tview.NewFlex().SetDirection(tview.FlexColumn).
+	AddItem(SecretsForm, 0, 1, true).
+	AddItem(FirstUserFrom, 0, 1, true)
+
+var AzureSecretContainer = tview.NewFlex().SetDirection(tview.FlexColumn).
+	AddItem(AzureStorageSecretsForm, 0, 2, true).
+	AddItem(AzureSSLSecretsForm, 0, 2, true)
+
+var page = tview.NewPages().
+	AddPage("Global", GlobalSecretContainer, true, false).
+	AddPage("Azure", AzureSecretContainer, true, false).
+	AddPage("AWS", AwsSecretsForm, true, false)
+
+var subSideMenu = tview.NewList().ShowSecondaryText(false).
+	AddItem("Global", "", '0', func() {
+		page.SwitchToPage("Global")
+	})
+
+var SecretFormContainer = tview.NewFlex().SetDirection(tview.FlexRow).
+	AddItem(page, 0, 8, true).
+	AddItem(components.CreateSecretButton, 0, 2, false)
+
+var SecretContainer = tview.NewFlex().SetDirection(tview.FlexColumn).
+	AddItem(subSideMenu, 0, 1, true).
+	AddItem(SecretFormContainer, 0, 4, true)
 
 func SecretsHide(option string) {
 	switch strings.ToLower(option) {
 	case "azure":
-		SecretContainer.
-			RemoveItem(AwsSecretsForm).
-			RemoveItem(components.CreateSecretButton)
-		SecretContainer.
-			AddItem(AzureSecretsForm, 0, 3, true).
-			AddItem(components.CreateSecretButton, 0, 1, false)
+		if hasAwsItem() {
+			subSideMenu.RemoveItem(subSideMenu.FindItems("AWS", "", false, false)[0])
+		}
+		subSideMenu.AddItem("Azure", "", '1', func() {
+			page.SwitchToPage("Azure")
+		})
 	case "aws":
-		SecretContainer.
-			RemoveItem(AzureSecretsForm).
-			RemoveItem(components.CreateSecretButton)
-		SecretContainer.
-			AddItem(AwsSecretsForm, 0, 3, true).
-			AddItem(components.CreateSecretButton, 0, 1, false)
+		if hasAzureItem() {
+			subSideMenu.RemoveItem(subSideMenu.FindItems("Azure", "", false, false)[0])
+		}
+		subSideMenu.AddItem("AWS", "", '1', func() {
+			page.SwitchToPage("AWS")
+		})
 	default:
-		SecretContainer.RemoveItem(AzureSecretsForm)
-		SecretContainer.RemoveItem(AwsSecretsForm)
+		if hasAzureItem() {
+			subSideMenu.RemoveItem(subSideMenu.FindItems("Azure", "", false, false)[0])
+		}
+		if hasAwsItem() {
+			subSideMenu.RemoveItem(subSideMenu.FindItems("AWS", "", false, false)[0])
+		}
+		page.ShowPage("Global")
 	}
+}
+
+func hasAzureItem() bool {
+	return len(subSideMenu.FindItems("Azure", "", false, false)) > 0
+}
+func hasAwsItem() bool {
+	return len(subSideMenu.FindItems("AWS", "", false, false)) > 0
 }

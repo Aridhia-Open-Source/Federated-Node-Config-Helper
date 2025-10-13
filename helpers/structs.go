@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 )
@@ -42,6 +43,15 @@ type Storage struct {
 	Aws      *AwsStorage   `yaml:"aws,omitempty"`
 	Azure    *AzureStorage `yaml:"aks,omitempty"`
 	Local    *LocalStorage `yaml:"local,omitempty"`
+}
+
+type FirstUser struct {
+	Name      string `yaml:"name,omitempty"`
+	UserKey   string `yaml:"userKey,omitempty"`
+	PassKey   string `yaml:"passKey,omitempty"`
+	FirstName string `yaml:"firstName,omitempty"`
+	LastName  string `yaml:"lastName,omitempty"`
+	Email     string `yaml:"email,omitempty"`
 }
 
 type NginxExtraArgs struct {
@@ -137,6 +147,7 @@ type Config struct {
 	NginxIngress     NginxConfig      `yaml:"nginx-ingress"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
 	Certs            Certs
+	FirstUserSecret  *FirstUser `yaml:"firstUserSecret"`
 	Global           GlobalConfig
 }
 
@@ -157,4 +168,29 @@ func (conf Config) CreateYaml(fileName string) {
 		panic(err)
 	}
 	fmt.Println("File created!")
+}
+
+func ReadYAML(filename string) (Config, ArgoCD) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	var result Config
+	var resultArgo ArgoCD
+	matched, _ := regexp.MatchString("apiVersion: argoproj.io/v1alpha1", string(data))
+	if matched {
+		// Unmarshal YAML into map
+		err = yaml.Unmarshal(data, &resultArgo)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		err = yaml.Unmarshal(data, &result)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return result, resultArgo
 }
