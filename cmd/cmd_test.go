@@ -23,8 +23,9 @@ func TestSaveYaml(t *testing.T) {
 	*/
 	defer tearDown()
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
+	lDev := false
 	st := helpers.Config{
-		LocalDevelopment: false,
+		LocalDevelopment: &lDev,
 	}
 	st.CreateYaml("values.yaml")
 	_, err := os.Stat("values.yaml")
@@ -51,7 +52,7 @@ func TestProperFieldConverted(t *testing.T) {
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText("host")
 	getValuesAndSaveYaml()
 	vals, _ := helpers.ReadYAML("values.yaml")
-	assert.Equal(t, vals.Database.Hostname, "host")
+	assert.Equal(t, vals.Database.Host, "host")
 }
 
 func TestWrongValues(t *testing.T) {

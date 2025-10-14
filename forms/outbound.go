@@ -10,9 +10,10 @@ import (
 	"github.com/rivo/tview"
 )
 
+var DeliveryOptions = []string{"none", "github", "other"}
 var OutboundSettingsForm = tview.NewForm().
 	AddCheckbox("Outbound mode", true, nil).
-	AddDropDown("Deliver to", []string{"none", "github", "other"}, 0, HandleDeliveryOpts)
+	AddDropDown("Deliver to", DeliveryOptions, 0, HandleDeliveryOpts)
 
 var createGHSecretButton = tview.NewButton("Create Secrets")
 
@@ -64,7 +65,7 @@ func init() {
 		}
 	})
 	OutboundContainer.
-		AddItem(OutboundSettingsForm, 0, 4, true).
+		AddItem(OutboundSettingsForm, 0, 2, true).
 		AddItem(GhIdpForm, 0, 4, false).
 		AddItem(createGHSecretButton, 0, 2, false)
 }
@@ -76,12 +77,12 @@ func HandleDeliveryOpts(option string, optionIndex int) {
 	case "github":
 		OutboundContainer.RemoveItem(OtherDeliveryForm)
 		OutboundContainer.RemoveItem(createGHSecretButton)
-		OutboundContainer.AddItem(GhDeliveryForm, 0, 5, false)
+		OutboundContainer.AddItem(GhDeliveryForm, 0, 4, false)
 		OutboundContainer.AddItem(createGHSecretButton, 0, 1, false)
 	case "other":
 		OutboundContainer.RemoveItem(GhDeliveryForm)
 		OutboundContainer.RemoveItem(createGHSecretButton)
-		OutboundContainer.AddItem(OtherDeliveryForm, 0, 5, false)
+		OutboundContainer.AddItem(OtherDeliveryForm, 0, 4, false)
 		OutboundContainer.AddItem(createGHSecretButton, 0, 1, false)
 	default:
 		OutboundContainer.RemoveItem(GhDeliveryForm)

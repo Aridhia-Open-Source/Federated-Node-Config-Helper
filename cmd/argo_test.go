@@ -18,7 +18,7 @@ func TestArgoEnabled(t *testing.T) {
 
 	_, err := os.Stat("values.yaml")
 	assert.NotNil(t, err)
-	assert.Nil(t, err, components.ErrorBoard.GetText(true))
+	assert.Equal(t, "", components.ErrorBoard.GetText(true))
 	_, vals := helpers.ReadYAML("argo-app-deployment.yaml")
 	assert.Equal(t, vals.Spec.SyncPolicy.SyncOptions, []string{"RespectIgnoreDifferences=true"})
 	os.Remove("argo-app-deployment.yaml")

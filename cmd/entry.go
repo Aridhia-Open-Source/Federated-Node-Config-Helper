@@ -4,6 +4,7 @@ Copyright © 2025 Riccardo Casula <riccardocasula@aridhia.net>
 package cmd
 
 import (
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,8 +21,36 @@ import (
 var app = tview.NewApplication()
 
 func Execute() {
+	flex := tview.NewFlex()
 
 	// Main Buttons
+	loadButton := components.NewLoadConfigButton("Load yaml file")
+	loadButton.SetSelectedFunc(func() {
+		app.SetRoot(components.ModalPage, true)
+	})
+	loadButton.SetBorder(true)
+
+	components.ConfirmButton.SetSelectedFunc(func() {
+		_, err := os.Stat(components.FilepathInput.GetText())
+		if err != nil {
+			components.ErrorBoard.SetText(err.Error())
+		}
+		mainConfig, argoConfig := helpers.ReadYAML(components.FilepathInput.GetText())
+		if argoConfig != nil {
+			err := yaml.Unmarshal([]byte(argoConfig.Spec.Source.Helm.Values), &mainConfig)
+			if err != nil {
+				panic(err)
+			}
+			// Set form items specifically to ArgoCD
+			forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).SetText(argoConfig.Spec.Destination.Namespace)
+			forms.BranchOrTagName.SetText(argoConfig.Spec.Source.TargetRevision)
+			forms.AppName.SetText(argoConfig.Metadata.Name)
+			forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
+		}
+		setFormsFromStucts(mainConfig)
+		app.SetRoot(flex, true)
+	})
+
 	saveButton := components.NewCreateConfigButton("Create Configuration File")
 	saveButton.
 		SetSelectedFunc(func() {
@@ -36,7 +65,7 @@ func Execute() {
 	page, mainSideMenu := pages.CreateMainPage(app)
 
 	// Main app handlers
-	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+	flex.SetDirection(tview.FlexRow).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
 			AddItem(components.Footer, 0, 1, false).
 			AddItem(components.ErrorBoard, 0, 1, false), 0, 2, false).
@@ -45,7 +74,13 @@ func Execute() {
 			AddItem(page, 0, 8, false), 0, 7, true).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
 			AddItem(saveButton, 0, 1, false).
+			AddItem(loadButton, 0, 1, false).
 			AddItem(quitButton, 0, 1, false), 0, 1, false)
+
+	// components
+	components.CancelModalButton.SetSelectedFunc(func() {
+		app.SetRoot(flex, true)
+	})
 
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
@@ -57,14 +92,17 @@ func getValuesAndSaveYaml() {
 	var err error = nil
 
 	// Checkboxes
-	conf.LocalDevelopment = forms.GeneralSettingsForm.GetFormItemByLabel("Is development deployment").(*tview.Checkbox).IsChecked()
-	conf.TaskReview = forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox).IsChecked()
-	conf.Global.TaskReview = forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox).IsChecked()
-	conf.Smoketests = forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox).IsChecked()
+	localDevelopment := forms.GeneralSettingsForm.GetFormItemByLabel("Is development deployment").(*tview.Checkbox).IsChecked()
+	conf.LocalDevelopment = &localDevelopment
+	taskReview := forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox).IsChecked()
+	conf.TaskReview = &taskReview
+	conf.Global.TaskReview = &taskReview
+	smoketests := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox).IsChecked()
+	conf.Smoketests = &smoketests
 
 	// Database
-	conf.Database.Hostname = forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).GetText()
-	if conf.Database.Hostname == "" {
+	conf.Database.Host = forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).GetText()
+	if conf.Database.Host == "" {
 		components.ErrorBoard.SetText("Database Hostname should not be empty")
 		return
 	}
@@ -86,28 +124,33 @@ func getValuesAndSaveYaml() {
 	}
 
 	// Nginx
-	conf.NginxIngress.Enabled = forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
+	ingressEnabled := forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
+	conf.NginxIngress.Enabled = &ingressEnabled
 	conf.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
 	conf.Global.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
-	if conf.Global.Host == "" && conf.NginxIngress.Enabled {
+	if conf.Global.Host == "" && *conf.NginxIngress.Enabled {
 		components.ErrorBoard.SetText("Nginx Host URL should not be empty")
 		return
 	}
-	conf.NginxIngress.Controller.AllowSnippetAnnotations = forms.NginxSettingsForm.GetFormItemByLabel("Allow Snippet Annotations").(*tview.Checkbox).IsChecked()
+	allowSnippetAnnotations := forms.NginxSettingsForm.GetFormItemByLabel("Allow Snippet Annotations").(*tview.Checkbox).IsChecked()
+	conf.NginxIngress.Controller.AllowSnippetAnnotations = &allowSnippetAnnotations
 	conf.NginxIngress.Controller.ExtraArgs.DefaultSslCertificate = forms.NginxSettingsForm.GetFormItemByLabel("Default SSL cert").(*tview.InputField).GetText()
 	conf.NginxIngress.Controller.IngressClass = forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).GetText()
 	conf.NginxIngress.Controller.IngressClassResource.Name = forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).GetText()
 	conf.NginxIngress.NamespaceOverride = forms.NginxSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).GetText()
 
 	// Cert manager
-	conf.CertManager.Enabled = forms.CertSettingsForm.GetFormItemByLabel("Use cert manager").(*tview.Checkbox).IsChecked()
+	installCRD := forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
+	certMgrEnaled := forms.CertSettingsForm.GetFormItemByLabel("Use cert manager").(*tview.Checkbox).IsChecked()
+	conf.CertManager.Enabled = &certMgrEnaled
 	conf.CertManager.Namespace = forms.CertSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).GetText()
-	conf.CertManager.InstallCRD = forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
+	conf.CertManager.InstallCRD = &installCRD
 	conf.Certs.RotationPolicy = forms.CertSettingsForm.GetFormItemByLabel("Rotation Policy").(*tview.InputField).GetText()
 
 	// Outbound mode/controller
-	conf.OutboundMode = forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
-	if conf.OutboundMode {
+	outbound := forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
+	conf.OutboundMode = &outbound
+	if *conf.OutboundMode {
 		_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
 		if deliveryOption == "github" {
 			conf.ControllerConfig.Delivery.Github = &helpers.DeliveryGH{Repository: forms.GhDeliveryForm.GetFormItemByLabel("Github Delivery Repository").(*tview.InputField).GetText()}
@@ -129,7 +172,7 @@ func getValuesAndSaveYaml() {
 
 	switch strings.ToLower(choice) {
 	case "aws":
-		conf.OnEks = true
+		*conf.OnEks = true
 		awsStorage := &helpers.AwsStorage{
 			FileSystemId:  forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).GetText(),
 			AccessPointId: forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).GetText(),
@@ -138,7 +181,7 @@ func getValuesAndSaveYaml() {
 		conf.ControllerConfig.Storage.Aws = awsStorage
 		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	case "azure":
-		conf.OnAks = true
+		*conf.OnAks = true
 
 		azureFileShare := forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText()
 		if azureFileShare == "" {
@@ -215,5 +258,143 @@ func getValuesAndSaveYaml() {
 		argo.CreateYaml("argo-app-deployment.yaml")
 	} else {
 		conf.CreateYaml("values.yaml")
+	}
+}
+
+func setFormsFromStucts(conf *helpers.Config) {
+	// Checkboxes
+	devDeploy := forms.GeneralSettingsForm.GetFormItemByLabel("Is development deployment").(*tview.Checkbox)
+	if conf.LocalDevelopment != nil {
+		devDeploy.SetChecked(*conf.LocalDevelopment)
+	}
+	taskReview := forms.GeneralSettingsForm.GetFormItemByLabel("Use Task Result Review").(*tview.Checkbox)
+	if conf.TaskReview != nil {
+
+		taskReview.SetChecked(*conf.TaskReview)
+	}
+	smoketests := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox)
+	if conf.Smoketests != nil {
+		smoketests.SetChecked(*conf.Smoketests)
+	}
+	// Database
+	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText(conf.Database.Host)
+	if conf.Database.User != "" {
+		forms.GeneralSettingsForm.GetFormItemByLabel("Database User").(*tview.InputField).SetText(conf.Database.User)
+	}
+	if conf.Database.Name != "" {
+		forms.GeneralSettingsForm.GetFormItemByLabel("Database Name").(*tview.InputField).SetText(conf.Database.Name)
+	}
+	if conf.Database.Port != 0 {
+		forms.GeneralSettingsForm.GetFormItemByLabel("Database Port").(*tview.InputField).SetText(strconv.Itoa(conf.Database.Port))
+	}
+	if conf.Database.Secret.Name != "" {
+		forms.SecretsForm.GetFormItemByLabel("Database Secret Name").(*tview.InputField).SetText(conf.Database.Secret.Name)
+	}
+	// Keycloak
+	if conf.Keycloak.Replicas != 0 {
+		forms.GeneralSettingsForm.GetFormItemByLabel("Keycloak Replicas").(*tview.InputField).SetText(strconv.Itoa(conf.Keycloak.Replicas))
+	}
+	// Storage
+	if conf.Storage.Capacity != "" {
+		forms.StorageSettingsForm.GetFormItemByLabel("Capacity").(*components.CapacityInput).SetText(conf.Storage.Capacity)
+	}
+	// Namespaces
+	if conf.Namespaces.Controller != "" {
+		forms.NamespacesForm.GetFormItemByLabel("Controller").(*tview.InputField).SetText(conf.Namespaces.Controller)
+	}
+	if conf.Namespaces.Tasks != "" {
+		forms.NamespacesForm.GetFormItemByLabel("Tasks").(*tview.InputField).SetText(conf.Namespaces.Tasks)
+	}
+	if conf.Namespaces.Keycloak != "" {
+		forms.NamespacesForm.GetFormItemByLabel("Keycloak").(*tview.InputField).SetText(conf.Namespaces.Keycloak)
+	}
+	// AWS
+	if conf.OnEks != nil {
+		if *conf.OnEks {
+			forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).SetText(conf.Storage.Aws.FileSystemId)
+			forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).SetText(conf.Storage.Aws.AccessPointId)
+			forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).SetText(conf.Certs.AWS)
+		}
+	} else
+	// Azure
+	if conf.OnAks != nil {
+		if *conf.OnAks {
+			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).SetText(conf.Storage.Azure.SecretName)
+			forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).SetText(conf.Storage.Azure.ShareName)
+			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).SetText(conf.Certs.Azure.Configmap)
+			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).SetText(conf.Certs.Azure.SecretName)
+		}
+	} else {
+		forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).SetText(conf.Storage.Local.Path)
+		forms.LocalStorageForm.GetFormItemByLabel("Local DB Path").(*tview.InputField).SetText(conf.Storage.Local.Dbpath)
+	}
+	// first user
+	if conf.FirstUserSecret != nil {
+		if conf.FirstUserSecret.Name != "" {
+			forms.FirstUserFrom.GetFormItemByLabel("Secret Name").(*tview.InputField).SetText(conf.FirstUserSecret.Name)
+		}
+		if conf.FirstUserSecret.PassKey != "" {
+			forms.FirstUserFrom.GetFormItemByLabel("Password Key").(*tview.InputField).SetText(conf.FirstUserSecret.PassKey)
+		}
+		forms.FirstUserFrom.GetFormItemByLabel("First Name").(*tview.InputField).SetText(conf.FirstUserSecret.FirstName)
+		forms.FirstUserFrom.GetFormItemByLabel("Last Name").(*tview.InputField).SetText(conf.FirstUserSecret.LastName)
+		forms.FirstUserFrom.GetFormItemByLabel("Email").(*tview.InputField).SetText(conf.FirstUserSecret.Email)
+	}
+	// Nginx
+	if conf.NginxIngress.Enabled != nil {
+		if *conf.NginxIngress.Enabled {
+			useNginxCheck := forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox)
+			if conf.NginxIngress.Enabled != nil {
+				useNginxCheck.SetChecked(*conf.NginxIngress.Enabled)
+			}
+			allowSnippetsCheck := forms.NginxSettingsForm.GetFormItemByLabel("Allow Snippet Annotations").(*tview.Checkbox)
+			if conf.NginxIngress.Controller.AllowSnippetAnnotations != nil {
+				allowSnippetsCheck.SetChecked(*conf.NginxIngress.Controller.AllowSnippetAnnotations)
+			}
+			forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).SetText(conf.Host)
+			forms.NginxSettingsForm.GetFormItemByLabel("Default SSL cert").(*tview.InputField).SetText(conf.NginxIngress.Controller.ExtraArgs.DefaultSslCertificate)
+			if conf.NginxIngress.Controller.IngressClass != "" {
+				forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).SetText(conf.NginxIngress.Controller.IngressClass)
+			}
+			if conf.NginxIngress.NamespaceOverride != "" {
+				forms.NginxSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).SetText(conf.NginxIngress.NamespaceOverride)
+			}
+		}
+	}
+	// Cert Manager
+	if conf.CertManager.Enabled != nil {
+		if *conf.CertManager.Enabled {
+			useCertMgrCheck := forms.CertSettingsForm.GetFormItemByLabel("Use cert manager").(*tview.Checkbox)
+			if conf.CertManager.Enabled != nil {
+				useCertMgrCheck.SetChecked(*conf.CertManager.Enabled)
+			}
+
+			installCRDs := forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox)
+			if nil != conf.CertManager.InstallCRD {
+				installCRDs.SetChecked(*conf.CertManager.InstallCRD)
+			}
+
+			if conf.CertManager.Namespace != "" {
+				forms.CertSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).SetText(conf.CertManager.Namespace)
+			}
+			if conf.Certs.RotationPolicy != "" {
+				forms.CertSettingsForm.GetFormItemByLabel("Rotation Policy").(*tview.InputField).SetText(conf.Certs.RotationPolicy)
+			}
+		}
+	}
+	// Outbound mode/controller
+	if conf.OutboundMode != nil {
+		if *conf.OutboundMode {
+			if conf.ControllerConfig.Delivery.Github != nil {
+				forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(helpers.FindInList("github", forms.DeliveryOptions))
+				forms.GhDeliveryForm.GetFormItemByLabel("Github Delivery Repository").(*tview.InputField).SetText(conf.ControllerConfig.Delivery.Github.Repository)
+			}
+			if conf.ControllerConfig.Delivery.Other != nil {
+				forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(helpers.FindInList("other", forms.DeliveryOptions))
+				forms.OtherDeliveryForm.GetFormItemByLabel("Authentication Type").(*tview.DropDown).SetCurrentOption(helpers.FindInList(conf.ControllerConfig.Delivery.Other.AuthType, forms.AuthOptions))
+				forms.OtherDeliveryForm.GetFormItemByLabel("Other Delivery Url").(*tview.InputField).SetText(conf.ControllerConfig.Delivery.Other.Url)
+			}
+			forms.GhIdpForm.GetFormItemByLabel("Github App Secret Name").(*tview.InputField).SetText(conf.ControllerConfig.Idp.Github.SecretName)
+		}
 	}
 }

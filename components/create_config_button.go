@@ -25,6 +25,10 @@ func NewConfigButton(label string, color tcell.Color) *ConfigButton {
 	return custom
 }
 
+func NewLoadConfigButton(label string) *ConfigButton {
+	return NewConfigButton(label, tcell.ColorDarkOrange)
+}
+
 func NewCreateConfigButton(label string) *ConfigButton {
 	return NewConfigButton(label, tcell.ColorDarkGreen)
 }
