@@ -19,10 +19,9 @@ import (
 )
 
 var app = tview.NewApplication()
+var flex = tview.NewFlex()
 
 func Execute() {
-	flex := tview.NewFlex()
-
 	// Main Buttons
 	loadButton := components.NewLoadConfigButton("Load yaml file")
 	loadButton.SetSelectedFunc(func() {
@@ -30,26 +29,7 @@ func Execute() {
 	})
 	loadButton.SetBorder(true)
 
-	components.ConfirmButton.SetSelectedFunc(func() {
-		_, err := os.Stat(components.FilepathInput.GetText())
-		if err != nil {
-			components.ErrorBoard.SetText(err.Error())
-		}
-		mainConfig, argoConfig := helpers.ReadYAML(components.FilepathInput.GetText())
-		if argoConfig != nil {
-			err := yaml.Unmarshal([]byte(argoConfig.Spec.Source.Helm.Values), &mainConfig)
-			if err != nil {
-				panic(err)
-			}
-			// Set form items specifically to ArgoCD
-			forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).SetText(argoConfig.Spec.Destination.Namespace)
-			forms.BranchOrTagName.SetText(argoConfig.Spec.Source.TargetRevision)
-			forms.AppName.SetText(argoConfig.Metadata.Name)
-			forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
-		}
-		setFormsFromStucts(mainConfig)
-		app.SetRoot(flex, true)
-	})
+	components.ConfirmButton.SetSelectedFunc(importHandler)
 
 	saveButton := components.NewCreateConfigButton("Create Configuration File")
 	saveButton.
@@ -85,6 +65,27 @@ func Execute() {
 	if err := app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
+}
+
+func importHandler() {
+	_, err := os.Stat(components.FilepathInput.GetText())
+	if err != nil {
+		components.ErrorBoard.SetText(err.Error())
+	}
+	mainConfig, argoConfig := helpers.ReadYAML(components.FilepathInput.GetText())
+	if argoConfig != nil {
+		err := yaml.Unmarshal([]byte(argoConfig.Spec.Source.Helm.Values), &mainConfig)
+		if err != nil {
+			panic(err)
+		}
+		// Set form items specifically to ArgoCD
+		forms.IntroForm.GetFormItemByLabel("Deployment Namespace").(*tview.InputField).SetText(argoConfig.Spec.Destination.Namespace)
+		forms.BranchOrTagName.SetText(argoConfig.Spec.Source.TargetRevision)
+		forms.AppName.SetText(argoConfig.Metadata.Name)
+		forms.IntroForm.GetFormItemByLabel("Use ArgoCD to deploy?").(*tview.Checkbox).SetChecked(true)
+	}
+	setFormsFromStucts(mainConfig)
+	app.SetRoot(flex, true)
 }
 
 func getValuesAndSaveYaml() {
@@ -172,7 +173,7 @@ func getValuesAndSaveYaml() {
 
 	switch strings.ToLower(choice) {
 	case "aws":
-		*conf.OnEks = true
+		conf.OnEks = true
 		awsStorage := &helpers.AwsStorage{
 			FileSystemId:  forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).GetText(),
 			AccessPointId: forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).GetText(),
@@ -181,7 +182,7 @@ func getValuesAndSaveYaml() {
 		conf.ControllerConfig.Storage.Aws = awsStorage
 		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	case "azure":
-		*conf.OnAks = true
+		conf.OnAks = true
 
 		azureFileShare := forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText()
 		if azureFileShare == "" {
@@ -189,15 +190,18 @@ func getValuesAndSaveYaml() {
 			return
 		}
 		azureStorage := &helpers.AzureStorage{
-			SecretName:         forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
+			SecretName:         forms.AzureStorageSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).GetText(),
 			ShareName:          azureFileShare,
 			StorageAccountKey:  "azurestorageaccountkey",
 			StorageAccountName: "azurestorageaccountname",
 		}
 		conf.Storage.Azure = azureStorage
 		conf.ControllerConfig.Storage.Azure = azureStorage
-		conf.Certs.Azure.Configmap = forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText()
-		conf.Certs.Azure.SecretName = forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText()
+		azureSSL := &helpers.AzureCerts{
+			Configmap: forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).GetText(),
+			Secret:    forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).GetText(),
+		}
+		conf.Certs.Azure = azureSSL
 	default:
 		localStorage := &helpers.LocalStorage{
 			Path:   forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).GetText(),
@@ -309,24 +313,24 @@ func setFormsFromStucts(conf *helpers.Config) {
 		forms.NamespacesForm.GetFormItemByLabel("Keycloak").(*tview.InputField).SetText(conf.Namespaces.Keycloak)
 	}
 	// AWS
-	if conf.OnEks != nil {
-		if *conf.OnEks {
-			forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).SetText(conf.Storage.Aws.FileSystemId)
-			forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).SetText(conf.Storage.Aws.AccessPointId)
-			forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).SetText(conf.Certs.AWS)
-		}
+	if conf.OnEks {
+		forms.AwsStorageForm.GetFormItemByLabel("AWS File System ID").(*tview.InputField).SetText(conf.Storage.Aws.FileSystemId)
+		forms.AwsStorageForm.GetFormItemByLabel("AWS Access Point ID").(*tview.InputField).SetText(conf.Storage.Aws.AccessPointId)
+		forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).SetText(conf.Certs.AWS)
 	} else
 	// Azure
-	if conf.OnAks != nil {
-		if *conf.OnAks {
-			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).SetText(conf.Storage.Azure.SecretName)
-			forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).SetText(conf.Storage.Azure.ShareName)
-			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).SetText(conf.Certs.Azure.Configmap)
-			forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).SetText(conf.Certs.Azure.SecretName)
+	if conf.OnAks {
+		forms.AzureStorageSecretsForm.GetFormItemByLabel("Azure Storage Secret Name").(*tview.InputField).SetText(conf.Storage.Azure.SecretName)
+		forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).SetText(conf.Storage.Azure.ShareName)
+		forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL ConfigMap Name").(*tview.InputField).SetText(conf.Certs.Azure.Configmap)
+		forms.AzureSSLSecretsForm.GetFormItemByLabel("Azure SSL SP Secret").(*tview.InputField).SetText(conf.Certs.Azure.Secret)
+	} else if conf.Storage.Local != nil {
+		if conf.Storage.Local.Path != "" {
+			forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).SetText(conf.Storage.Local.Path)
 		}
-	} else {
-		forms.LocalStorageForm.GetFormItemByLabel("Local Path").(*tview.InputField).SetText(conf.Storage.Local.Path)
-		forms.LocalStorageForm.GetFormItemByLabel("Local DB Path").(*tview.InputField).SetText(conf.Storage.Local.Dbpath)
+		if conf.Storage.Local.Dbpath != "" {
+			forms.LocalStorageForm.GetFormItemByLabel("Local DB Path").(*tview.InputField).SetText(conf.Storage.Local.Dbpath)
+		}
 	}
 	// first user
 	if conf.FirstUserSecret != nil {

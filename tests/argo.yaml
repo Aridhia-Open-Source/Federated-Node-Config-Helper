@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 'federatednode'
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Aridhia-Open-Source/PHEMS_federated_node'
+    path: k8s/federated-node
+    targetRevision: main
+    helm:
+      # paste the custom helm values content in here
+      values: |
+        db:
+          user: admin
+          host: db.default.svc
+          secret:
+            key: password
+            name: local-db
+        outboundMode: true
+        fn-task-controller:
+          idp:
+            github:
+              secret_name: github-app
+              secret_key: GH_SECRET
+              clientid_key: GH_CLIENT_ID
+              orgAndRepo: Aridhia-Open-Source/Federated-Node-Example-App
+          delivery:
+            other:
+              url: deliveryurl.com
+              auth_type: Bearer
+
+    chart: federated-node
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated: {}

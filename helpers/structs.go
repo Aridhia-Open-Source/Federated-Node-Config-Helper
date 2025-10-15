@@ -41,7 +41,7 @@ type LocalStorage struct {
 type Storage struct {
 	Capacity string
 	Aws      *AwsStorage   `yaml:"aws,omitempty"`
-	Azure    *AzureStorage `yaml:"aks,omitempty"`
+	Azure    *AzureStorage `yaml:"azure,omitempty"`
 	Local    *LocalStorage `yaml:"local,omitempty"`
 }
 
@@ -113,8 +113,8 @@ type CertConfig struct {
 	InstallCRD *bool `yaml:"installCRDs"`
 }
 type AzureCerts struct {
-	SecretName string `yaml:"secretName"`
-	Configmap  string
+	Secret    string
+	Configmap string
 }
 type Certs struct {
 	RotationPolicy string `yaml:"rotationPolicy"`
@@ -141,8 +141,8 @@ type Config struct {
 	Storage          Storage
 	Host             string
 	Keycloak         Keycloak
-	OnAks            *bool            `yaml:"on_aks"`
-	OnEks            *bool            `yaml:"on_eks"`
+	OnAks            bool             `yaml:"on_aks"`
+	OnEks            bool             `yaml:"on_eks"`
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
 	NginxIngress     NginxConfig      `yaml:"ingress-nginx"`
 	CertManager      CertConfig       `yaml:"cert-manager"`

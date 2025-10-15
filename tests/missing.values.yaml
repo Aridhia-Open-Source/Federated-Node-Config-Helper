@@ -1,0 +1,7 @@
+db:
+  user: admin
+  secret:
+    key: password
+    name: local-db
+
+host: someurl.com

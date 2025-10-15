@@ -4,3 +4,4 @@ artifacts/**
 !.keep
 *.deb
 *.exe
+!tests/*.yaml
