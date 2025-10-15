@@ -41,7 +41,7 @@ func UpdateListsFiles(currentPath string, entries []os.DirEntry) {
 	for _, file := range entries {
 		fpath := filepath.Join(currentPath, file.Name())
 		if !file.IsDir() {
-			fileList.AddItem(file.Name(), "", '0', func() {
+			fileList.AddItem(file.Name(), "", 0, func() {
 				FilepathInput.SetText(fpath)
 			})
 		}
@@ -55,7 +55,7 @@ func UpdateListsFolders(currentPath string) {
 	for idx := range fileTree.GetItemCount() {
 		fileTree.RemoveItem(idx)
 	}
-	fileTree.AddItem("..", "", 127, func() {
+	fileTree.AddItem("..", "", 0, func() {
 		parent := filepath.Dir(currentPath)
 		UpdateListsFiles(parent, listDirContents(parent))
 	})
@@ -63,7 +63,7 @@ func UpdateListsFolders(currentPath string) {
 	for _, dir := range entries {
 		if dir.IsDir() {
 			fpath := filepath.Join(currentPath, dir.Name())
-			fileTree.AddItem(dir.Name(), "", '0', func() {
+			fileTree.AddItem(dir.Name(), "", 0, func() {
 				UpdateListsFiles(fpath, listDirContents(fpath))
 			})
 		}
