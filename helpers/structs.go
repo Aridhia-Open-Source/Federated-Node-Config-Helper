@@ -14,11 +14,11 @@ type DBSecret struct {
 	Key  string
 }
 type DB struct {
-	User     string
-	Name     string
-	Hostname string
-	Port     int
-	Secret   DBSecret
+	User   string
+	Name   string
+	Host   string
+	Port   int
+	Secret DBSecret
 }
 
 type AwsStorage struct {
@@ -41,7 +41,7 @@ type LocalStorage struct {
 type Storage struct {
 	Capacity string
 	Aws      *AwsStorage   `yaml:"aws,omitempty"`
-	Azure    *AzureStorage `yaml:"aks,omitempty"`
+	Azure    *AzureStorage `yaml:"azure,omitempty"`
 	Local    *LocalStorage `yaml:"local,omitempty"`
 }
 
@@ -63,14 +63,14 @@ type NginxClass struct {
 }
 
 type NginxController struct {
-	AllowSnippetAnnotations bool           `yaml:"allowSnippetAnnotations"`
+	AllowSnippetAnnotations *bool          `yaml:"allowSnippetAnnotations"`
 	IngressClass            string         `yaml:"ingressClass"`
 	IngressClassResource    NginxClass     `yaml:"ingressClassResource"`
 	ExtraArgs               NginxExtraArgs `yaml:"extraArgs"`
 }
 
 type NginxConfig struct {
-	Enabled           bool
+	Enabled           *bool
 	NamespaceOverride string `yaml:"namespaceOverride"`
 	Controller        NginxController
 }
@@ -108,13 +108,13 @@ type Namespaces struct {
 }
 
 type CertConfig struct {
-	Enabled    bool
+	Enabled    *bool
 	Namespace  string
-	InstallCRD bool `yaml:"installCRDs"`
+	InstallCRD *bool `yaml:"installCRDs"`
 }
 type AzureCerts struct {
-	SecretName string `yaml:"secretName"`
-	Configmap  string
+	Secret    string
+	Configmap string
 }
 type Certs struct {
 	RotationPolicy string `yaml:"rotationPolicy"`
@@ -126,25 +126,25 @@ type Keycloak struct {
 }
 type GlobalConfig struct {
 	Namespaces Namespaces
-	TaskReview bool `yaml:"taskReview"`
+	TaskReview *bool `yaml:"taskReview"`
 	Host       string
 }
 
 type Config struct {
-	LocalDevelopment bool `yaml:"local_development"`
+	LocalDevelopment *bool `yaml:"local_development"`
 	Namespaces       Namespaces
-	Database         DB   `yaml:"db"`
-	CleanupTime      int  `yaml:"cleanupTime"`
-	OutboundMode     bool `yaml:"outboundMode"`
-	TaskReview       bool `yaml:"taskReview"`
-	Smoketests       bool
+	Database         DB    `yaml:"db"`
+	CleanupTime      int   `yaml:"cleanupTime"`
+	OutboundMode     *bool `yaml:"outboundMode"`
+	TaskReview       *bool `yaml:"taskReview"`
+	Smoketests       *bool
 	Storage          Storage
 	Host             string
 	Keycloak         Keycloak
 	OnAks            bool             `yaml:"on_aks"`
 	OnEks            bool             `yaml:"on_eks"`
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
-	NginxIngress     NginxConfig      `yaml:"nginx-ingress"`
+	NginxIngress     NginxConfig      `yaml:"ingress-nginx"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
 	Certs            Certs
 	FirstUserSecret  *FirstUser `yaml:"firstUserSecret"`
@@ -170,14 +170,14 @@ func (conf Config) CreateYaml(fileName string) {
 	fmt.Println("File created!")
 }
 
-func ReadYAML(filename string) (Config, ArgoCD) {
+func ReadYAML(filename string) (*Config, *ArgoCD) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 
-	var result Config
-	var resultArgo ArgoCD
+	var result = &Config{}
+	var resultArgo = &ArgoCD{}
 	matched, _ := regexp.MatchString("apiVersion: argoproj.io/v1alpha1", string(data))
 	if matched {
 		// Unmarshal YAML into map
@@ -185,12 +185,13 @@ func ReadYAML(filename string) (Config, ArgoCD) {
 		if err != nil {
 			panic(err)
 		}
-	} else {
-		err = yaml.Unmarshal(data, &result)
-		if err != nil {
-			panic(err)
-		}
+		return nil, resultArgo
+
+	}
+	err = yaml.Unmarshal(data, &result)
+	if err != nil {
+		panic(err)
 	}
 
-	return result, resultArgo
+	return result, nil
 }

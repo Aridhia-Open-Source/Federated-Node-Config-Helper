@@ -1,0 +1,28 @@
+db:
+  user: admin
+  host: db.default.svc
+  secret:
+    key: password
+    name: local-db
+
+host: someurl.com
+cert-manager:
+  enabled: true
+  namespace: certmanager
+
+outboundMode: true
+
+ingress-nginx:
+  enabled: true
+  controller:
+    ingressClass: "nginx"
+    extraArgs:
+      default-ssl-certificate: federatednode/my-tls-secret
+storage:
+  aws:
+    fileSystemId: fs-0cfbff2429fbe1c3a
+    accessPointId: fsap-0413cbd15dbc26d2a
+on_eks: true
+certs:
+  frequency: 65
+  aws: config-aws

@@ -1,0 +1,27 @@
+db:
+  user: admin
+  host: db.default.svc
+  secret:
+    key: password
+    name: local-db
+
+host: someurl.com
+cert-manager:
+  enabled: true
+  namespace: certmanager
+
+outboundMode: true
+
+ingress-nginx:
+  enabled: true
+  controller:
+    ingressClass: "nginx"
+    extraArgs:
+      default-ssl-certificate: federatednode/my-tls-secret
+
+firstUserSecret:
+  name: first-user
+  passKey: pass
+  firstName: Jack
+  lastName: Black
+  email: jackblack@email.com
