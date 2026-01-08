@@ -12,12 +12,8 @@ cert-manager:
 
 outboundMode: true
 
-ingress-nginx:
-  enabled: true
-  controller:
-    ingressClass: "nginx"
-    extraArgs:
-      default-ssl-certificate: federatednode/my-tls-secret
+traefik:
+  enabled: false
 
 firstUserSecret:
   name: first-user

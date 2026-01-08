@@ -124,21 +124,12 @@ func getValuesAndSaveYaml() {
 		return
 	}
 
-	// Nginx
-	ingressEnabled := forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox).IsChecked()
-	conf.NginxIngress.Enabled = &ingressEnabled
-	conf.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
-	conf.Global.Host = forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
-	if conf.Global.Host == "" && *conf.NginxIngress.Enabled {
-		components.ErrorBoard.SetText("Nginx Host URL should not be empty")
-		return
-	}
-	allowSnippetAnnotations := forms.NginxSettingsForm.GetFormItemByLabel("Allow Snippet Annotations").(*tview.Checkbox).IsChecked()
-	conf.NginxIngress.Controller.AllowSnippetAnnotations = &allowSnippetAnnotations
-	conf.NginxIngress.Controller.ExtraArgs.DefaultSslCertificate = forms.NginxSettingsForm.GetFormItemByLabel("Default SSL cert").(*tview.InputField).GetText()
-	conf.NginxIngress.Controller.IngressClass = forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).GetText()
-	conf.NginxIngress.Controller.IngressClassResource.Name = forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).GetText()
-	conf.NginxIngress.NamespaceOverride = forms.NginxSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).GetText()
+	// Traefik
+	traefikEnabled := forms.TraefikSettingsForm.GetFormItemByLabel("Use Traefik").(*tview.Checkbox).IsChecked()
+	conf.Traefik.Enabled = &traefikEnabled
+	conf.Host = forms.TraefikSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).GetText()
+	conf.Traefik.GatewayClass.Name = forms.TraefikSettingsForm.GetFormItemByLabel("Gateway Class").(*tview.InputField).GetText()
+	conf.Traefik.Gateway.Name = forms.TraefikSettingsForm.GetFormItemByLabel("Gateway Name").(*tview.InputField).GetText()
 
 	// Cert manager
 	installCRD := forms.CertSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
@@ -183,7 +174,9 @@ func getValuesAndSaveYaml() {
 		conf.Certs.AWS = forms.AwsSecretsForm.GetFormItemByLabel("AWS SSL Secret Name").(*tview.InputField).GetText()
 	case "azure":
 		conf.OnAks = true
-
+		if traefikEnabled {
+			conf.Traefik.Service.Spec.ExternalTrafficPolicy = "Local"
+		}
 		azureFileShare := forms.AzureStorageForm.GetFormItemByLabel("Azure File Share").(*tview.InputField).GetText()
 		if azureFileShare == "" {
 			components.ErrorBoard.SetText("Azure File Share should not be empty")
@@ -344,24 +337,20 @@ func setFormsFromStucts(conf *helpers.Config) {
 		forms.FirstUserFrom.GetFormItemByLabel("Last Name").(*tview.InputField).SetText(conf.FirstUserSecret.LastName)
 		forms.FirstUserFrom.GetFormItemByLabel("Email").(*tview.InputField).SetText(conf.FirstUserSecret.Email)
 	}
-	// Nginx
-	if conf.NginxIngress.Enabled != nil {
-		if *conf.NginxIngress.Enabled {
-			useNginxCheck := forms.NginxSettingsForm.GetFormItemByLabel("Use nginx").(*tview.Checkbox)
-			if conf.NginxIngress.Enabled != nil {
-				useNginxCheck.SetChecked(*conf.NginxIngress.Enabled)
+	// Traefik
+	if conf.Traefik.Enabled != nil {
+		if *conf.Traefik.Enabled {
+			useTraefikCheck := forms.TraefikSettingsForm.GetFormItemByLabel("Use Traefik").(*tview.Checkbox)
+			if conf.Traefik.Enabled != nil {
+				useTraefikCheck.SetChecked(*conf.Traefik.Enabled)
 			}
-			allowSnippetsCheck := forms.NginxSettingsForm.GetFormItemByLabel("Allow Snippet Annotations").(*tview.Checkbox)
-			if conf.NginxIngress.Controller.AllowSnippetAnnotations != nil {
-				allowSnippetsCheck.SetChecked(*conf.NginxIngress.Controller.AllowSnippetAnnotations)
+			forms.TraefikSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).SetText(conf.Host)
+
+			if conf.Traefik.GatewayClass.Name != "" {
+				forms.TraefikSettingsForm.GetFormItemByLabel("Gateway Class").(*tview.InputField).SetText(conf.Traefik.GatewayClass.Name)
 			}
-			forms.NginxSettingsForm.GetFormItemByLabel("Host URL").(*tview.InputField).SetText(conf.Host)
-			forms.NginxSettingsForm.GetFormItemByLabel("Default SSL cert").(*tview.InputField).SetText(conf.NginxIngress.Controller.ExtraArgs.DefaultSslCertificate)
-			if conf.NginxIngress.Controller.IngressClass != "" {
-				forms.NginxSettingsForm.GetFormItemByLabel("Ingress Class").(*tview.InputField).SetText(conf.NginxIngress.Controller.IngressClass)
-			}
-			if conf.NginxIngress.NamespaceOverride != "" {
-				forms.NginxSettingsForm.GetFormItemByLabel("Namespace").(*tview.InputField).SetText(conf.NginxIngress.NamespaceOverride)
+			if conf.Traefik.Gateway.Name != "" {
+				forms.TraefikSettingsForm.GetFormItemByLabel("Gateway Name").(*tview.InputField).SetText(conf.Traefik.Gateway.Name)
 			}
 		}
 	}

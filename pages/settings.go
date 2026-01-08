@@ -37,9 +37,9 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 		page.SwitchToPage("CertManager")
 		app.SetFocus(forms.CertSettingsForm)
 	})
-	mainSideMenu.AddItem("Nginx", "", '6', func() {
-		page.SwitchToPage("Nginx")
-		app.SetFocus(forms.NginxSettingsForm)
+	mainSideMenu.AddItem("Traefik", "", '6', func() {
+		page.SwitchToPage("Traefik")
+		app.SetFocus(forms.TraefikSettingsForm)
 	})
 	mainSideMenu.AddItem("Namespaces", "", '7', func() {
 		page.SwitchToPage("Namespaces")
@@ -57,7 +57,7 @@ func CreateMainPage(app *tview.Application) (*tview.Pages, *tview.List) {
 	page.AddPage("General", forms.GeneralSettingsForm, true, false)
 	page.AddPage("Storage", forms.StorageContainer, true, false)
 	page.AddPage("Outbound", forms.OutboundContainer, true, false)
-	page.AddPage("Nginx", forms.NginxSettingsForm, true, false)
+	page.AddPage("Traefik", forms.TraefikSettingsForm, true, false)
 	page.AddPage("CertManager", forms.CertSettingsForm, true, false)
 	page.AddPage("Namespaces", forms.NamespacesForm, true, false)
 
