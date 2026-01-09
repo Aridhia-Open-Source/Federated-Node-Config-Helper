@@ -13,6 +13,7 @@ import (
 var DeliveryOptions = []string{"none", "github", "other"}
 var OutboundSettingsForm = tview.NewForm().
 	AddCheckbox("Outbound mode", true, nil).
+	AddCheckbox("Install CRDs", true, nil).
 	AddDropDown("Deliver to", DeliveryOptions, 0, HandleDeliveryOpts)
 
 var createGHSecretButton = tview.NewButton("Create Secrets")

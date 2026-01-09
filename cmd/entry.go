@@ -100,6 +100,8 @@ func getValuesAndSaveYaml() {
 	conf.Global.TaskReview = &taskReview
 	smoketests := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox).IsChecked()
 	conf.Smoketests = &smoketests
+	registrySyncEnabled := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox).IsChecked()
+	conf.FederatedNode.EnableRegistrySync = &registrySyncEnabled
 
 	// Database
 	conf.Database.Host = forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).GetText()
@@ -142,6 +144,8 @@ func getValuesAndSaveYaml() {
 	// Outbound mode/controller
 	outbound := forms.OutboundSettingsForm.GetFormItemByLabel("Outbound mode").(*tview.Checkbox).IsChecked()
 	conf.OutboundMode = &outbound
+	installFNTCCRDs := forms.OutboundSettingsForm.GetFormItemByLabel("Install CRDs").(*tview.Checkbox).IsChecked()
+	conf.ControllerConfig.InstallCRDs = &installFNTCCRDs
 	if *conf.OutboundMode {
 		_, deliveryOption := forms.OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).GetCurrentOption()
 		if deliveryOption == "github" {
@@ -273,6 +277,11 @@ func setFormsFromStucts(conf *helpers.Config) {
 	if conf.Smoketests != nil {
 		smoketests.SetChecked(*conf.Smoketests)
 	}
+	registrySync := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox)
+	if conf.FederatedNode.EnableRegistrySync != nil {
+		registrySync.SetChecked(*conf.FederatedNode.EnableRegistrySync)
+	}
+
 	// Database
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText(conf.Database.Host)
 	if conf.Database.User != "" {
@@ -376,6 +385,10 @@ func setFormsFromStucts(conf *helpers.Config) {
 		}
 	}
 	// Outbound mode/controller
+	installFNTCCRDs := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox)
+	if conf.ControllerConfig.InstallCRDs != nil {
+		installFNTCCRDs.SetChecked(*conf.ControllerConfig.InstallCRDs)
+	}
 	if conf.OutboundMode != nil {
 		if *conf.OutboundMode {
 			if conf.ControllerConfig.Delivery.Github != nil {

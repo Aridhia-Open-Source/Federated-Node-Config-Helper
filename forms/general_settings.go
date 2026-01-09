@@ -10,6 +10,7 @@ var GeneralSettingsForm = tview.NewForm().
 	AddCheckbox("Is development deployment", false, nil).
 	AddCheckbox("Use Task Result Review", false, nil).
 	AddCheckbox("Enable Smoketests", false, nil).
+	AddCheckbox("Enable Registry Sync", false, nil).
 	AddInputField("Database Host", "", 20, nil, nil).
 	AddInputField("Database User", "admin", 20, nil, nil).
 	AddInputField("Database Name", "fndb", 20, nil, nil).

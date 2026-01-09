@@ -98,9 +98,10 @@ type Delivery struct {
 }
 
 type ControllerConfig struct {
-	Idp      Idp
-	Storage  Storage
-	Delivery Delivery
+	Idp         Idp
+	Storage     Storage
+	Delivery    Delivery
+	InstallCRDs *bool
 }
 
 type Namespaces struct {
@@ -131,7 +132,9 @@ type GlobalConfig struct {
 	TaskReview *bool `yaml:"taskReview"`
 	Host       string
 }
-
+type FederatedNode struct {
+	EnableRegistrySync *bool `yaml:"enable_registry_sync"`
+}
 type Config struct {
 	LocalDevelopment *bool `yaml:"local_development"`
 	Namespaces       Namespaces
@@ -142,6 +145,7 @@ type Config struct {
 	Smoketests       *bool
 	Storage          Storage
 	Host             string
+	FederatedNode    FederatedNode `yaml:"federatedNode"`
 	Keycloak         Keycloak
 	OnAks            bool             `yaml:"on_aks"`
 	OnEks            bool             `yaml:"on_eks"`
