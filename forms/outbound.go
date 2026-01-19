@@ -117,13 +117,17 @@ var GhSecretsContainer = tview.NewFlex().SetDirection(tview.FlexColumn)
 func HandleDeliveryOpts(option string, optionIndex int) {
 	switch strings.ToLower(option) {
 	case "github":
+		SameAsTrigger.SetDisabled(false)
 		if !SameAsTrigger.IsChecked() {
 			GhSecretsContainer.AddItem(GhDeliveryForm, 0, 1, false)
 		}
+		GhSecretsContainer.RemoveItem(OtherDeliveryForm)
 	case "other":
 		GhSecretsContainer.RemoveItem(GhDeliveryForm)
 		GhSecretsContainer.AddItem(OtherDeliveryForm, 0, 1, false)
+		SameAsTrigger.SetDisabled(true)
 	default:
+		SameAsTrigger.SetDisabled(true)
 		GhSecretsContainer.RemoveItem(GhDeliveryForm)
 		GhSecretsContainer.RemoveItem(OtherDeliveryForm)
 	}
