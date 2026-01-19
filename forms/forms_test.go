@@ -94,14 +94,14 @@ func TestDBPortIsInt(t *testing.T) {
 func TestDeliveryGithub(t *testing.T) {
 	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(1)
 	assert.NotNil(t,
-		OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Github Delivery Repository"),
+		GhSecretsContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Github Delivery Repository"),
 		"GitHub form not found",
 	)
 }
 func TestDeliveryOther(t *testing.T) {
 	OutboundSettingsForm.GetFormItemByLabel("Deliver to").(*tview.DropDown).SetCurrentOption(2)
 	assert.NotNil(t,
-		OutboundContainer.GetItem(2).(*tview.Form).GetFormItemByLabel("Other Delivery Url"),
+		GhSecretsContainer.GetItem(1).(*tview.Form).GetFormItemByLabel("Other Delivery Url"),
 		"Other delivery form not found",
 	)
 }
