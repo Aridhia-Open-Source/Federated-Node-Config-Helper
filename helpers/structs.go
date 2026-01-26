@@ -54,25 +54,27 @@ type FirstUser struct {
 	Email     string `yaml:"email,omitempty"`
 }
 
-type NginxExtraArgs struct {
-	DefaultSslCertificate string `yaml:"default-ssl-certificate"`
-}
-
-type NginxClass struct {
+type GatewayClass struct {
 	Name string
 }
 
-type NginxController struct {
-	AllowSnippetAnnotations *bool          `yaml:"allowSnippetAnnotations"`
-	IngressClass            string         `yaml:"ingressClass"`
-	IngressClassResource    NginxClass     `yaml:"ingressClassResource"`
-	ExtraArgs               NginxExtraArgs `yaml:"extraArgs"`
+type TraefikServiceSpec struct {
+	ExternalTrafficPolicy string `yaml:"externalTrafficPolicy"`
 }
 
-type NginxConfig struct {
-	Enabled           *bool
-	NamespaceOverride string `yaml:"namespaceOverride"`
-	Controller        NginxController
+type TraefikService struct {
+	Spec TraefikServiceSpec
+}
+
+type TraefikGateway struct {
+	Name string
+}
+
+type Traefik struct {
+	Enabled      *bool
+	Gateway      TraefikGateway
+	GatewayClass GatewayClass `yaml:"gatewayClass"`
+	Service      *TraefikService
 }
 
 type IdpGH struct {
@@ -144,7 +146,7 @@ type Config struct {
 	OnAks            bool             `yaml:"on_aks"`
 	OnEks            bool             `yaml:"on_eks"`
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
-	NginxIngress     NginxConfig      `yaml:"ingress-nginx"`
+	Traefik          Traefik          `yaml:"traefik"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
 	Certs            Certs
 	FirstUserSecret  *FirstUser `yaml:"firstUserSecret"`
