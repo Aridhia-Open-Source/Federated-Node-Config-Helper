@@ -17,4 +17,5 @@ var GeneralSettingsForm = tview.NewForm().
 	AddInputField("Database Port", "5432", 20, nil, helpers.PortValidator).
 	AddInputField("Keycloak Replicas", "2", 20, nil, helpers.ReplicasValidator).
 	AddCheckbox("Enforce DB SSL", false, nil).
+	AddCheckbox("Automatic Cleanup enabled", true, nil).
 	AddInputField("Cleanup Time", "3", 20, nil, helpers.CleanupDaysValidator)

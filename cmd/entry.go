@@ -101,6 +101,15 @@ func getValuesAndSaveYaml() {
 	smoketests := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox).IsChecked()
 	conf.Smoketests = &smoketests
 
+	// Auto cleanup
+	cleanupEnabled := forms.GeneralSettingsForm.GetFormItemByLabel("Automatic Cleanup enabled").(*tview.Checkbox).IsChecked()
+	conf.CleanupResults.Enabled = &cleanupEnabled
+	conf.CleanupResults.CleanupTime, err = strconv.Atoi(forms.GeneralSettingsForm.GetFormItemByLabel("Cleanup Time").(*tview.InputField).GetText())
+	if err != nil {
+		components.ErrorBoard.SetText(err.Error())
+		return
+	}
+
 	// Federated Node
 	regSync := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox).IsChecked()
 	conf.FederatedNode.EnableRegistrySync = &regSync
@@ -279,6 +288,12 @@ func setFormsFromStucts(conf *helpers.Config) {
 	if conf.Smoketests != nil {
 		smoketests.SetChecked(*conf.Smoketests)
 	}
+	// Auto cleanup
+	cleanupEnabled := forms.GeneralSettingsForm.GetFormItemByLabel("Automatic Cleanup enabled").(*tview.Checkbox)
+	if conf.CleanupResults.Enabled != nil {
+		cleanupEnabled.SetChecked(*conf.CleanupResults.Enabled)
+	}
+	forms.GeneralSettingsForm.GetFormItemByLabel("Cleanup Time").(*tview.InputField).SetText(strconv.Itoa(conf.CleanupResults.CleanupTime))
 	// Federated Node
 	regSync := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox)
 	if conf.FederatedNode.EnableRegistrySync != nil {

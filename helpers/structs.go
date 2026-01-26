@@ -130,6 +130,10 @@ type Keycloak struct {
 type FederatedNode struct {
 	EnableRegistrySync *bool `yaml:"enable_registry_sync"`
 }
+type CleanupResults struct {
+	Enabled     *bool
+	CleanupTime int `yaml:"cleanupTime"`
+}
 type GlobalConfig struct {
 	Namespaces Namespaces
 	TaskReview *bool `yaml:"taskReview"`
@@ -139,10 +143,10 @@ type GlobalConfig struct {
 type Config struct {
 	LocalDevelopment *bool `yaml:"local_development"`
 	Namespaces       Namespaces
-	Database         DB    `yaml:"db"`
-	CleanupTime      int   `yaml:"cleanupTime"`
-	OutboundMode     *bool `yaml:"outboundMode"`
-	TaskReview       *bool `yaml:"taskReview"`
+	Database         DB             `yaml:"db"`
+	CleanupResults   CleanupResults `yaml:"cleanupResults"`
+	OutboundMode     *bool          `yaml:"outboundMode"`
+	TaskReview       *bool          `yaml:"taskReview"`
 	Smoketests       *bool
 	Storage          Storage
 	Host             string
