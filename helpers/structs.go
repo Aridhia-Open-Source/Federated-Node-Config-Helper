@@ -14,11 +14,12 @@ type DBSecret struct {
 	Key  string
 }
 type DB struct {
-	User   string
-	Name   string
-	Host   string
-	Port   int
-	Secret DBSecret
+	User       string
+	Name       string
+	Host       string
+	Port       int
+	Secret     DBSecret
+	EnforceSSL *bool `yaml:"enforceSSL"`
 }
 
 type AwsStorage struct {
@@ -126,6 +127,9 @@ type Certs struct {
 type Keycloak struct {
 	Replicas int
 }
+type FederatedNode struct {
+	EnableRegistrySync *bool `yaml:"enable_registry_sync"`
+}
 type GlobalConfig struct {
 	Namespaces Namespaces
 	TaskReview *bool `yaml:"taskReview"`
@@ -147,6 +151,7 @@ type Config struct {
 	OnEks            bool             `yaml:"on_eks"`
 	ControllerConfig ControllerConfig `yaml:"fn-task-controller"`
 	Traefik          Traefik          `yaml:"traefik"`
+	FederatedNode    FederatedNode    `yaml:"federatedNode"`
 	CertManager      CertConfig       `yaml:"cert-manager"`
 	Certs            Certs
 	FirstUserSecret  *FirstUser `yaml:"firstUserSecret"`

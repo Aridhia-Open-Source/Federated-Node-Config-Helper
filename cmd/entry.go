@@ -101,8 +101,14 @@ func getValuesAndSaveYaml() {
 	smoketests := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Smoketests").(*tview.Checkbox).IsChecked()
 	conf.Smoketests = &smoketests
 
+	// Federated Node
+	regSync := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox).IsChecked()
+	conf.FederatedNode.EnableRegistrySync = &regSync
+
 	// Database
 	conf.Database.Host = forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).GetText()
+	enforceSSL := forms.GeneralSettingsForm.GetFormItemByLabel("Enforce DB SSL").(*tview.Checkbox).IsChecked()
+	conf.Database.EnforceSSL = &enforceSSL
 	if conf.Database.Host == "" {
 		components.ErrorBoard.SetText("Database Hostname should not be empty")
 		return
@@ -273,8 +279,17 @@ func setFormsFromStucts(conf *helpers.Config) {
 	if conf.Smoketests != nil {
 		smoketests.SetChecked(*conf.Smoketests)
 	}
+	// Federated Node
+	regSync := forms.GeneralSettingsForm.GetFormItemByLabel("Enable Registry Sync").(*tview.Checkbox)
+	if conf.FederatedNode.EnableRegistrySync != nil {
+		regSync.SetChecked(*conf.FederatedNode.EnableRegistrySync)
+	}
 	// Database
 	forms.GeneralSettingsForm.GetFormItemByLabel("Database Host").(*tview.InputField).SetText(conf.Database.Host)
+	enforceSSL := forms.GeneralSettingsForm.GetFormItemByLabel("Enforce DB SSL").(*tview.Checkbox)
+	if conf.Database.EnforceSSL != nil {
+		enforceSSL.SetChecked(*conf.Database.EnforceSSL)
+	}
 	if conf.Database.User != "" {
 		forms.GeneralSettingsForm.GetFormItemByLabel("Database User").(*tview.InputField).SetText(conf.Database.User)
 	}

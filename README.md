@@ -11,3 +11,8 @@ Alternatively, you can [install Go](https://go.dev/doc/install) and run
 ```sh
 go install github.com/Aridhia-Open-Source/Federated-Node-Config-Helper
 ```
+
+### Locally
+```sh
+go run .
+```
